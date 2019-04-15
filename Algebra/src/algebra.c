@@ -6,6 +6,13 @@
  */
 #include"algebra.h"
 
+void IsGroup(OperateSys *pOpSys)
+{
+    AssociativeLaw(pOpSys);
+    HasIdentityEle(pOpSys);
+    HasInvEle(pOpSys);
+}
+
 Algebra *AlgebraOpen(void)
 {
 	Algebra *pAlgebra = (Algebra*)malloc(sizeof(Algebra));

@@ -26,5 +26,8 @@ struct OperateSys
 
 void SetOperaSys(OperateSys **ppOpSys);
 pthread_t CreatthreadTest(OperateSys *pOpSys);
+int AssociativeLaw(OperateSys *pOpSys);
+int HasIdentityEle(OperateSys *pOpSys);
+int HasInvEle(OperateSys *pOpSys);
 
 #endif /* GROUP_H_ */

@@ -23,4 +23,5 @@ struct Algebra
 };
 
 Algebra *AlgebraOpen(void);
+void IsGroup(OperateSys *pOpSys);
 #endif /* ALGEBRA_H_ */

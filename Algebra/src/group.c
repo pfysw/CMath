@@ -288,12 +288,9 @@ void *PermPrintTest(void *arg)
     loga("pT31");
     memout(&pT[3]->aNum[0],5);
     loga("");
-    AssociativeLaw(pOpSys);
-    HasIdentityEle(pOpSys);
-    HasInvEle(pOpSys);
    // pTest = pOpSys->xConjOperat(&p1,&p2);
    // memout(&pTest->aNum[0],5);
-
+    IsGroup(pOpSys);
     return NULL;
 }
 
