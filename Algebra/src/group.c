@@ -6,6 +6,7 @@
  */
 #include "group.h"
 #include "algebra.h"
+#include "field.h"
 
 typedef struct FivePerm
 {
@@ -59,7 +60,7 @@ void FivePermTrav(FivePerm *pPerm, int left, int right, int num)
     RecCnt--;
 }
 
-FivePerm *FivePermGen(int num)
+FivePerm *FivePermGen(OperateSys *pOpSys,u32 num)
 {
     FivePerm *p;
     u8 aInit[5] = {1,2,3,4,5};
@@ -126,6 +127,7 @@ FivePerm *FivePermOp(FivePerm *p1, FivePerm *p2)
     return p;
 }
 
+//根据p1的轮换来对p2进行置换
 FivePerm *FivePermOp1(FivePerm *p1, FivePerm *p2)
 {
     FivePerm *p;
@@ -152,31 +154,46 @@ OperateSys *PermutationObj(void)
     };
 
     //函数类型不匹配，加void去警告
-    static OperateSys perm =
-    {
-        NULL,
-        (void*)FivePermEqual,
-        (void*)FivePermGen,
-        (void*)FivePermInv,
-        (void*)FivePermRec,
-        (void*)FivePermOp,
-        (void*)FivePermOp1,
-    };
+    static OperateSys perm;
+    memset(&perm,0,sizeof(perm));
+
     perm.pBaseEle = &baseItem;
+    perm.nPara = 1;
+    perm.xIsEqual = (void*)FivePermEqual;
+    perm.xGen = (void*)FivePermGen;
+    perm.xInvEle = (void*)FivePermInv;
+    perm.xOperat =  (void*)FivePermOp;
+
     return &perm;
+}
+
+void SetGenPara(OperateSys* pOpSys, u32 iNum)
+{
+    int i;
+    if( pOpSys->nPara>1 )
+    {
+        for(i=0; i<pOpSys->nPara-1; i++)
+        {
+            pOpSys->aGenPara[i] = FakeRand(iNum+i);
+        }
+    }
 }
 
 int AssociativeLaw(OperateSys *pOpSys)
 {
     int rc = 0;
     int i,j,k;
-    void* pT[7];
+    FieldEle* pT[7];
+
     for(i=0; i<10; i++)
     {
+
         for(j=0; j<3; j++)
         {
             k = FakeRand(i+j*10);
-            pT[j] = pOpSys->xGen(k);
+            SetGenPara(pOpSys,k);
+
+            pT[j] = pOpSys->xGen(pOpSys,k);
 //            loga("i %d j %d k %d",i,j,k%120);
 //            memout(&((FivePerm*)pT[j])->aNum[0],5);
         }
@@ -192,6 +209,7 @@ int AssociativeLaw(OperateSys *pOpSys)
         {
             free(pT[j]);
         }
+
         assert( rc );
     }
 
@@ -209,11 +227,29 @@ int HasInvEle(OperateSys *pOpSys)
     void* pInv;
     for(i=0; i<10; i++)
     {
+//        //debug
+//        static int jj=0;
+//        jj++;
+//        if(jj==25)
+//        {
+//            logc("ss");
+//        }
+//        logc("jj %d",jj);
+
+
         k = FakeRand(i+2);
-        pGen = pOpSys->xGen(k);
+        SetGenPara(pOpSys,k);
+        pGen = pOpSys->xGen(pOpSys,k);
         pInv = pOpSys->xInvEle(pGen);
-        pEle = pOpSys->xOperat(pGen,pInv);
-        rc = pOpSys->xIsEqual(pOpSys->pBaseEle,pEle);
+       // pEle = pOpSys->xOperat(pGen,pInv);
+        pEle = pOpSys->xOperat(pInv,pGen);
+        rc = pOpSys->xIsEqual(pEle,pOpSys->pBaseEle);
+
+//        if(!rc)
+//        {
+//            sleep(1);
+//        }
+
         free(pGen);
         free(pEle);
         free(pInv);
@@ -232,10 +268,13 @@ int HasIdentityEle(OperateSys *pOpSys)
     void* pGen;
     for(i=0; i<10; i++)
     {
+
         k = FakeRand(i);
-        pGen = pOpSys->xGen(k);
+        SetGenPara(pOpSys,k);
+        pGen = pOpSys->xGen(pOpSys,k);
         pEle = pOpSys->xOperat(pOpSys->pBaseEle,pGen);
         rc = pOpSys->xIsEqual(pGen,pEle);
+
         free(pGen);
         free(pEle);
         assert( rc );
@@ -245,18 +284,17 @@ int HasIdentityEle(OperateSys *pOpSys)
     return rc;
 }
 
-void *PermPrintTest(void *arg)
+void PermPrintTest(OperateSys *pOpSys)
 {
-    OperateSys *pOpSys = (OperateSys *)arg;
     FivePerm* pTest;
     FivePerm* pT[5];
 
     loga("sd %d",((FivePerm*)pOpSys->pBaseEle)->aNum[3]);
-    pT[0] = pOpSys->xGen(1);
+    pT[0] = pOpSys->xGen(pOpSys,1);
 //    sleep(1);
 //    assert(0);
-    pT[1] = pOpSys->xGen(92);
-    pT[2] = pOpSys->xGen(72);
+    pT[1] = pOpSys->xGen(pOpSys,92);
+    pT[2] = pOpSys->xGen(pOpSys,72);
     for(int i=0; i<3; i++)
     {
         memout(&pT[i]->aNum[0],5);
@@ -288,10 +326,9 @@ void *PermPrintTest(void *arg)
     loga("pT31");
     memout(&pT[3]->aNum[0],5);
     loga("");
-   // pTest = pOpSys->xConjOperat(&p1,&p2);
+   // pTest =FivePermOp1(&p1,&p2);
    // memout(&pTest->aNum[0],5);
     IsGroup(pOpSys);
-    return NULL;
 }
 
 void SetOperaSys(OperateSys **ppOpSys)
@@ -300,10 +337,3 @@ void SetOperaSys(OperateSys **ppOpSys)
 }
 
 
-pthread_t CreatthreadTest(OperateSys *pOpSys)
-{
-    pthread_t tidp;
-
-    pthread_create(&tidp,NULL,(void*)PermPrintTest,pOpSys);
-    return tidp;
-}

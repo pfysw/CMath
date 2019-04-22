@@ -10,6 +10,7 @@
 #include"type.h"
 
 #define loga(format,...)   printf(format"\n",## __VA_ARGS__)
+#define logc(format,...)   printf(format"\n",## __VA_ARGS__)
 
 u32 FakeRand(int n);
 void memout(u8 *pdata,int len);

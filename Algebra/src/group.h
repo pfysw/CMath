@@ -16,12 +16,14 @@
 struct OperateSys
 {
     void *pBaseEle;
+    u8 nPara;
+    u8 isMult;
+    u8 aGenPara[3];
     int (*xIsEqual)(void *, void *);
-    void *(*xGen)(int iNum);
+    void *(*xGen)(OperateSys*,u32 iNum);
     void *(*xInvEle)(void *);
     void *(*xRecursiveGen)(void *pEle);
     void *(*xOperat)(void *, void *);
-    void *(*xConjOperat)(void *, void *);
 };
 
 void SetOperaSys(OperateSys **ppOpSys);

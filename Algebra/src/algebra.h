@@ -20,7 +20,10 @@ typedef struct Algebra Algebra;
 struct Algebra
 {
     OperateSys *pOpSys;
+    FieldSys *pField;
 };
+
+
 
 Algebra *AlgebraOpen(void);
 void IsGroup(OperateSys *pOpSys);

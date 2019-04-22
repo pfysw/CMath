@@ -17,6 +17,8 @@ Algebra *AlgebraOpen(void)
 {
 	Algebra *pAlgebra = (Algebra*)malloc(sizeof(Algebra));
 	memset(pAlgebra, 0, sizeof(Algebra));
+	SetOperaSys(&pAlgebra->pOpSys);
+	SetFieldSys(&pAlgebra->pField);
 	return pAlgebra;
 }
 
