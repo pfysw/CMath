@@ -14,5 +14,6 @@ typedef unsigned short u16;
 
 typedef struct FieldSys FieldSys;
 typedef struct OperateSys OperateSys;
+typedef struct VectorEle VectorEle;
 
 #endif /* TYPE_H_ */

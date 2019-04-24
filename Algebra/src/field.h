@@ -10,6 +10,8 @@
 #include "type.h"
 
 
+#define ROW 5
+#define COL 3
 
 typedef struct FieldEle FieldEle;
 struct FieldEle
@@ -30,6 +32,7 @@ struct FieldSys
 {
     OperateSys *pGroup1;//加法群
     OperateSys *pGroup2;//乘法群
+    VectorEle **paVector;
 };
 
 OperateSys *RationPlusObj(void);

@@ -392,11 +392,11 @@ OperateSys *RationMultObj(void)
 void SetFieldSys(FieldSys **ppField)
 {
     *ppField = (FieldSys *)malloc(sizeof(FieldSys));
-//    (*ppField)->pGroup1 = RationPlusObj();
-//    (*ppField)->pGroup2 = RationMultObj();
+    (*ppField)->pGroup1 = RationPlusObj();
+    (*ppField)->pGroup2 = RationMultObj();
 
-    (*ppField)->pGroup1 = ModPlusObj();
-    (*ppField)->pGroup2 = ModMultObj();
+//    (*ppField)->pGroup1 = ModPlusObj();
+//    (*ppField)->pGroup2 = ModMultObj();
 }
 
 int DistributiveLaw(FieldSys *pField)
@@ -459,8 +459,14 @@ void RationTest(FieldSys *pField)
 
 void FieldTest(FieldSys *pField)
 {
+    int rc = 4;
     loga("field");
     IsField(pField);
+    loga("vector");
+
+    NewVector(pField);
+    rc = isLinearDepedent(pField,pField->paVector,COL,0,ROW);
+    loga("isLinear %d",rc);
 //    IsGroup(pField->pGroup1);
 //    IsGroup(pField->pGroup2);
 }
