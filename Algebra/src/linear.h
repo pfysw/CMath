@@ -12,7 +12,7 @@
 struct VectorEle
 {
     int nEle;
-    void **aVecEle;
+    FieldEle **aVecEle;
 };
 
 #endif /* LINEAR_H_ */

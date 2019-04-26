@@ -32,6 +32,7 @@ int RationEqual(FieldEle *p1, FieldEle *p2)
 {
     int rc = 0;
 
+#if 0//判断分数是否相等
     if( p1->dnmtr*p2->nmrtr==p2->dnmtr*p1->nmrtr )
     {
         if( p1->eSymb==p2->eSymb )
@@ -39,6 +40,14 @@ int RationEqual(FieldEle *p1, FieldEle *p2)
             rc = 1;
         }
     }
+#else
+    if( p1->val>p2->val-0.001 &&
+            p1->val<p2->val+0.001 )
+    {
+        rc = 1;
+    }
+
+#endif
 
     return rc;
 }
@@ -56,6 +65,12 @@ FieldEle *NatureGen(OperateSys *pOpSys,u32 num)
     p->dnmtr = 1;
 
     p->eSymb = pOpSys->aGenPara[0]%2;
+
+    p->val = p->nmrtr;
+    if( p->eSymb==NEG_NUM )
+    {
+        p->val = -p->val;
+    }
 
     return p;
 }
@@ -108,6 +123,11 @@ FieldEle *RationGen(OperateSys *pOpSys,u32 num)
     p->nmrtr = num+1;
     p->dnmtr = dnmtr+1;
     p->eSymb = pOpSys->aGenPara[1]&1;
+    p->val = (float)p->nmrtr/p->dnmtr;
+    if( p->eSymb==NEG_NUM )
+    {
+        p->val = -p->val;
+    }
 
     return p;
 }
@@ -162,6 +182,8 @@ FieldEle *RationPlusInv(FieldEle *p1)
         p->eSymb = POS_NUM;
     }
 
+    p->val = -p1->val;
+
     return p;
 }
 
@@ -174,6 +196,8 @@ FieldEle *RationMultInv(FieldEle *p1)
     p->dnmtr = p1->nmrtr;
     p->nmrtr = p1->dnmtr;
     p->eSymb = p1->eSymb;
+
+    p->val = 1/p1->val;
 
     return p;
 }
@@ -211,6 +235,7 @@ FieldEle *RationPlusOp(FieldEle *p1,FieldEle *p2)
     p->dnmtr = p->dnmtr/div;
     p->nmrtr = p->nmrtr/div;
 
+    p->val = p1->val+p2->val;
     return p;
 }
 
@@ -296,6 +321,7 @@ FieldEle *RationMultOp(FieldEle *p1,FieldEle *p2)
     p->dnmtr = p->dnmtr/div;
     p->nmrtr = p->nmrtr/div;
 
+    p->val = p1->val*p2->val;
     return p;
 }
 
@@ -350,6 +376,7 @@ OperateSys *RationPlusObj(void)
     {
         0,
         1,
+        0,
         POS_NUM,
     };
 
@@ -370,6 +397,7 @@ OperateSys *RationMultObj(void)
 {
     static FieldEle baseItem =
     {
+        1,
         1,
         1,
         POS_NUM,
@@ -463,10 +491,7 @@ void FieldTest(FieldSys *pField)
     loga("field");
     IsField(pField);
     loga("vector");
-
-    NewVector(pField);
-    rc = isLinearDepedent(pField,pField->paVector,COL,0,ROW);
-    loga("isLinear %d",rc);
+    VectorTest(pField);
 //    IsGroup(pField->pGroup1);
 //    IsGroup(pField->pGroup2);
 }

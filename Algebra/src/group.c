@@ -230,11 +230,11 @@ int HasInvEle(OperateSys *pOpSys)
 //        //debug
 //        static int jj=0;
 //        jj++;
-//        if(jj==25)
+//        if(jj==21)
 //        {
-//            logc("ss");
+//            loga("ss");
 //        }
-//        logc("jj %d",jj);
+//        loga("jj %d",jj);
 
 
         k = FakeRand(i+2);
@@ -268,7 +268,6 @@ int HasIdentityEle(OperateSys *pOpSys)
     void* pGen;
     for(i=0; i<10; i++)
     {
-
         k = FakeRand(i);
         SetGenPara(pOpSys,k);
         pGen = pOpSys->xGen(pOpSys,k);

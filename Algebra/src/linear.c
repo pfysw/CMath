@@ -44,6 +44,14 @@ FieldEle *FiledDiv(
     return pT[1];
 }
 
+//float TestVal[3][5] =
+//{
+//        1,0,0,0,0,
+//        2,1,0,0,0,
+//        3,0,3,0,0,
+//};
+
+
 void NewVector(FieldSys *pField)
 {
 
@@ -65,23 +73,300 @@ void NewVector(FieldSys *pField)
             paVector[i]->aVecEle[j] = pField->pGroup2->xGen(pField->pGroup2,k);
             pEle = paVector[i]->aVecEle[j];
             char asym[2] = {'+','-'};
-            logc("%c%d/%d ",asym[pEle->eSymb],pEle->nmrtr,pEle->dnmtr);
+            //logc("%c%d/%d ",asym[pEle->eSymb],pEle->nmrtr,pEle->dnmtr);
+            logc("%.2f  ",pEle->val);
         }
         logc("\n");
     }
 
 }
+
+VectorEle *VectorPlus(
+        FieldSys *pField,
+        VectorEle *pVector1,
+        VectorEle *pVector2)
+{
+    int nEle = pVector1->nEle;
+    VectorEle *pVector;
+    int i;
+
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    pVector->aVecEle = malloc(nEle*sizeof(void *));
+    for(i=0;i<nEle;i++)
+    {
+        pVector->aVecEle[i] = pField->pGroup1->xOperat(
+                pVector1->aVecEle[i],pVector2->aVecEle[i] );
+    }
+
+    return pVector;
+}
+
+int isVecotrEqual(
+        FieldSys *pField,
+        VectorEle *p1,
+        VectorEle *p2)
+{
+    int rc = 0;
+    int nEle = p1->nEle;
+    int i;
+    FieldEle* pT[2];
+
+    for(i=0; i<nEle; i++)
+    {
+        pT[0] = p1->aVecEle[i];
+        pT[1] = p2->aVecEle[i];
+        rc = pField->pGroup1->xIsEqual(pT[0],pT[1]);
+        if( !rc )   break;
+    }
+
+    return rc;
+}
+
+VectorEle *FieldMultVector(
+        FieldSys *pField,
+        void *pEle,
+        VectorEle *pVector1)
+{
+    int nEle = pVector1->nEle;
+    VectorEle *pVector;
+    int i;
+
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    pVector->aVecEle = malloc(nEle*sizeof(void *));
+    for(i=0;i<nEle;i++)
+    {
+        pVector->aVecEle[i] = pField->pGroup2->xOperat(pEle,
+                pVector1->aVecEle[i]);
+    }
+
+    return pVector;
+}
+
+void FreeVector(VectorEle *pVec)
+{
+    int nEle = pVec->nEle;
+    int i;
+
+    for(i=0; i<nEle; i++)
+    {
+        free(pVec->aVecEle[i]);
+    }
+    free(pVec);
+}
+
+//a(A+B) = aA + aB
+int VectorDist1(FieldSys *pField,int nEle)
+{
+    int rc = 0;
+    int i,j,l;
+    u32 k;
+    FieldEle* pFieldEle;
+    OperateSys *pMult = pField->pGroup2;
+    VectorEle *pVector[2];
+    VectorEle *pV[5];
+
+    for(i=0; i<10; i++)
+    {
+
+        k = FakeRand(i+j*10);
+        SetGenPara(pMult,k);
+        pFieldEle = pMult->xGen(pMult,k);
+
+        for(j=0; j<2; j++)
+        {
+            pVector[j] = (VectorEle *)malloc(sizeof(VectorEle));
+            memset(pVector[j],0,sizeof(VectorEle));
+            pVector[j]->nEle = nEle;
+            pVector[j]->aVecEle = malloc(nEle*sizeof(void *));
+            for(l=0;l<nEle; l++)
+            {
+                k = FakeRand(i+j+l);
+                SetGenPara(pMult,k);
+                pVector[j]->aVecEle[l] = pMult->xGen(pMult,k);
+            }
+        }
+
+        pV[0] = VectorPlus(pField,pVector[0],pVector[1]);
+        pV[1] = FieldMultVector(pField,pFieldEle,pV[0]);
+        pV[2] = FieldMultVector(pField,pFieldEle,pVector[0]);
+        pV[3] = FieldMultVector(pField,pFieldEle,pVector[1]);
+        pV[4] = VectorPlus(pField,pV[2],pV[3]);
+        rc = isVecotrEqual(pField,pV[1],pV[4]);
+        free(pFieldEle);
+        FreeVector(pVector[0]);
+        FreeVector(pVector[1]);
+        for(j=0; j<5; j++)
+        {
+            FreeVector(pV[j]);
+        }
+
+        assert( rc );
+    }
+    loga("vector Distributive1 ok %d",rc);
+    return rc;
+
+}
+
+//(a + b)A = aA + bA
+int VectorDist2(FieldSys *pField,int nEle)
+{
+    int rc = 0;
+    int i,j,l;
+    u32 k;
+    FieldEle* pT[3];
+    OperateSys *pMult = pField->pGroup2;
+    OperateSys *pPlus = pField->pGroup1;
+    VectorEle *pV[5];
+
+    for(i=0; i<10; i++)
+    {
+        for(j=0; j<2; j++)
+        {
+            k = FakeRand(i+j*10);
+            SetGenPara(pMult,k);
+            pT[j] = pMult->xGen(pMult,k);
+        }
+
+
+        pV[0] = (VectorEle *)malloc(sizeof(VectorEle));
+        memset(pV[0],0,sizeof(VectorEle));
+        pV[0]->nEle = nEle;
+        pV[0]->aVecEle = malloc(nEle*sizeof(void *));
+        for(l=0;l<nEle; l++)
+        {
+            k = FakeRand(i+l);
+            SetGenPara(pMult,k);
+            pV[0]->aVecEle[l] = pMult->xGen(pMult,k);
+        }
+
+        pT[2] = pPlus->xOperat(pT[0],pT[1]);
+        pV[1] = FieldMultVector(pField,pT[2],pV[0]);
+
+        pV[2] = FieldMultVector(pField,pT[0],pV[0]);
+        pV[3] = FieldMultVector(pField,pT[1],pV[0]);
+        pV[4] = VectorPlus(pField,pV[2],pV[3]);
+        rc = isVecotrEqual(pField,pV[1],pV[4]);
+
+        for(j=0; j<3; j++)
+        {
+            free(pT[j]);
+        }
+        for(j=0; j<5; j++)
+        {
+            FreeVector(pV[j]);
+        }
+
+        assert( rc );
+    }
+    loga("vector Distributive2 ok %d",rc);
+    return rc;
+
+}
+
+//a(bA) = (ab)A
+int VectorAsso(FieldSys *pField,int nEle)
+{
+    int rc = 0;
+    int i,j,l;
+    u32 k;
+    FieldEle* pT[3];
+    OperateSys *pMult = pField->pGroup2;
+    VectorEle *pV[4];
+
+    for(i=0; i<10; i++)
+    {
+        for(j=0; j<2; j++)
+        {
+            k = FakeRand(i+j*10);
+            SetGenPara(pMult,k);
+            pT[j] = pMult->xGen(pMult,k);
+        }
+
+
+        pV[0] = (VectorEle *)malloc(sizeof(VectorEle));
+        memset(pV[0],0,sizeof(VectorEle));
+        pV[0]->nEle = nEle;
+        pV[0]->aVecEle = malloc(nEle*sizeof(void *));
+        for(l=0;l<nEle; l++)
+        {
+            k = FakeRand(i+l);
+            SetGenPara(pMult,k);
+            pV[0]->aVecEle[l] = pMult->xGen(pMult,k);
+        }
+
+        pV[1] = FieldMultVector(pField,pT[1],pV[0]);
+        pV[2] = FieldMultVector(pField,pT[0],pV[1]);
+
+        pT[2] = pMult->xOperat(pT[0],pT[1]);
+        pV[3] = FieldMultVector(pField,pT[2],pV[0]);
+        rc = isVecotrEqual(pField,pV[2],pV[3]);
+
+        for(j=0; j<3; j++)
+        {
+            free(pT[j]);
+        }
+        for(j=0; j<4; j++)
+        {
+            FreeVector(pV[j]);
+        }
+
+        assert( rc );
+    }
+    loga("vector Association ok %d",rc);
+    return rc;
+}
+
+int VectorIdentity(FieldSys *pField,int nEle)
+{
+    int rc = 0;
+    int i,j,l;
+    u32 k;
+    OperateSys *pMult = pField->pGroup2;
+    VectorEle *pV[2];
+
+    for(i=0; i<10; i++)
+    {
+
+        pV[0] = (VectorEle *)malloc(sizeof(VectorEle));
+        memset(pV[0],0,sizeof(VectorEle));
+        pV[0]->nEle = nEle;
+        pV[0]->aVecEle = malloc(nEle*sizeof(void *));
+        for(l=0;l<nEle; l++)
+        {
+            k = FakeRand(i+l);
+            SetGenPara(pMult,k);
+            pV[0]->aVecEle[l] = pMult->xGen(pMult,k);
+        }
+
+        pV[1] = FieldMultVector(pField,pMult->pBaseEle,pV[0]);
+        rc = isVecotrEqual(pField,pV[0],pV[1]);
+
+        for(j=0; j<2; j++)
+        {
+            FreeVector(pV[j]);
+        }
+
+        assert( rc );
+    }
+    loga("vector Identity ok %d",rc);
+    return rc;
+}
+
+
 int isLinearDepedent(
         FieldSys *pField,
-        VectorEle **paVector,
-        int n,
-        int iRow,
-        int nRow)
+        VectorEle **paVector,//输入的向量组
+        int n,//n个变量
+        int iRow,//输入的方程起始编号
+        int nRow)//输入的方程个数
 {
     int rc = 0;
     int i,j;
     OperateSys *pPlus = pField->pGroup1;
-    OperateSys *pMult = pField->pGroup2;
     FieldEle **paEle;
     FieldEle *pTemp;
     FieldEle *pTempEle;
@@ -90,6 +375,7 @@ int isLinearDepedent(
     assert(nRow>0);
     if( n==1 )
     {
+        //不断消元递归后只剩一个变量，可能还有多个方程
         paEle= (FieldEle **)&((paVector[0])->aVecEle[iRow]);
         for(i=0; i<nRow; i++)
         {
@@ -99,10 +385,12 @@ int isLinearDepedent(
                 return 0;
             }
         }
+        //如果最后一列系数全是0，那么有非零解，线性相关
         return 1;
     }
     else if( nRow==1 )
     {
+        //只剩一行，但是未知变量大于1，那么必定有非零解
         return 1;
     }
     else
@@ -125,6 +413,8 @@ int isLinearDepedent(
             }
         }
         paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
+        //如果第一列的元素全为0，那么忽略这一列，递归下一列
+        //todo 此时是否可以直接认定为线性相关
         if( pPlus->xIsEqual(paEle[0],pPlus->pBaseEle) )
         {
             rc = isLinearDepedent(pField,&paVector[1],n-1,iRow,nRow);
@@ -135,18 +425,56 @@ int isLinearDepedent(
             {
                 paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
                 pTemp = FiledDiv(pField,paEle[i],paEle[0]);
-//                FieldEle *p1=NULL,*p2=NULL;
-//                pTemp = FiledDiv(pField,p1,p2);
+                //pTemp是后面方程的元素与第1个方程元素的比值
                 for(j=0;j<n;j++)
                 {
                     paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
+                    //根据这个比值校园
                     paEle[i] = EliminationUnkowns(pField,paEle[i],paEle[0],pTemp);
                 }
                 free(pTemp);
             }
+            //消去第一个变量后，递归下一列和下一行，重新执行以上步骤
             rc = isLinearDepedent(pField,&paVector[1],n-1,iRow+1,nRow-1);
         }
     }
 
     return rc;
+}
+
+void PrintVal(
+        FieldSys *pField,
+        VectorEle **paVector)
+{
+    int i,j;
+
+    FieldEle *pEle;
+    for(i=0; i<COL; i++)
+    {
+        for(j=0;j<ROW;j++)
+        {
+            pEle = paVector[i]->aVecEle[j];
+            logc("%.2f  ",pEle->val);
+        }
+        logc("\n");
+    }
+}
+
+void isVectorSpace(FieldSys *pField,int nEle)
+{
+    VectorDist1(pField,nEle);
+    VectorDist2(pField,nEle);
+    VectorAsso(pField,nEle);
+    VectorIdentity(pField,nEle);
+}
+
+void VectorTest(FieldSys *pField)
+{
+    int rc;
+    NewVector(pField);
+    rc = isLinearDepedent(pField,pField->paVector,COL,0,ROW);
+    loga("isLinear %d",rc);
+    PrintVal(pField,pField->paVector);
+    loga("--");
+    isVectorSpace(pField,4);
 }

@@ -18,6 +18,7 @@ struct FieldEle
 {
     u32 nmrtr;//·Ö×Ó
     u32 dnmtr;//·ÖÄ¸
+    float val;
     u8 eSymb;
 };
 
