@@ -179,6 +179,12 @@ void SetGenPara(OperateSys* pOpSys, u32 iNum)
     }
 }
 
+void *GenRatuonEle(OperateSys *pOpSys, int k)
+{
+    SetGenPara(pOpSys,k);
+    return pOpSys->xGen(pOpSys,k);
+}
+
 int AssociativeLaw(OperateSys *pOpSys)
 {
     int rc = 0;

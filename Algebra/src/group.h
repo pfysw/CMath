@@ -19,6 +19,7 @@ struct OperateSys
     u8 nPara;
     u8 isMult;
     u8 aGenPara[3];
+    FieldSys *pFiled;
     int (*xIsEqual)(void *, void *);
     void *(*xGen)(OperateSys*,u32 iNum);
     void *(*xInvEle)(void *);
@@ -31,5 +32,5 @@ pthread_t CreatthreadTest(OperateSys *pOpSys);
 int AssociativeLaw(OperateSys *pOpSys);
 int HasIdentityEle(OperateSys *pOpSys);
 int HasInvEle(OperateSys *pOpSys);
-
+void *GenRatuonEle(OperateSys *pOpSys, int k);
 #endif /* GROUP_H_ */

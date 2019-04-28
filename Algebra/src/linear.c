@@ -52,7 +52,133 @@ FieldEle *FiledDiv(
 //};
 
 
-void NewVector(FieldSys *pField)
+
+VectorEle *VectorPlus(
+        FieldSys *pField,
+        VectorEle *pVector1,
+        VectorEle *pVector2)
+{
+    int nEle = pVector1->nEle;
+    VectorEle *pVector;
+    int i;
+
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    pVector->aVecEle = malloc(nEle*sizeof(void *));
+    for(i=0;i<nEle;i++)
+    {
+        pVector->aVecEle[i] = pField->pGroup1->xOperat(
+                pVector1->aVecEle[i],pVector2->aVecEle[i] );
+    }
+
+    return pVector;
+}
+
+VectorEle *VectorMult(
+        FieldSys *pField,
+        VectorEle *p1,
+        VectorEle *p2)
+{
+    VectorEle *pVector;
+    OperateSys *pMult = pField->pGroup2;
+    OperateSys *pPlus = pField->pGroup1;
+    FieldEle *pT[2];
+    int i,j,k;
+    int size;
+
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = p1->nEle+p2->nEle-1;
+    size = pVector->nEle*sizeof(void *);
+    pVector->aVecEle = malloc(size);
+    memset(pVector->aVecEle,0,size);
+    for(i=0;i<p1->nEle;i++)
+    {
+        for(j=0;j<p2->nEle;j++)
+        {
+            k = i+j;
+            pT[0] = pMult->xOperat(p1->aVecEle[i],p2->aVecEle[j]);
+            if( pVector->aVecEle[k]==NULL )
+            {
+                pVector->aVecEle[k] = pT[0];
+            }
+            else
+            {
+                pT[1] = pPlus->xOperat(pT[0],pVector->aVecEle[k]);
+                free(pVector->aVecEle[k]);
+                free(pT[0]);
+                pVector->aVecEle[k] = pT[1];
+            }
+
+        }
+    }
+
+    return pVector;
+}
+
+VectorEle *NewVector(int nEle)
+{
+    VectorEle *pVector;
+    int size;
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    size = nEle*sizeof(void *);
+    pVector->aVecEle = malloc(size);
+    memset(pVector->aVecEle,0,size);
+    return pVector;
+}
+
+VectorEle *VectorMod(
+        FieldSys *pField,
+        VectorEle *p1,
+        VectorEle *p2)
+{
+    VectorEle *pVector;
+    VectorEle *pTemp;
+    OperateSys *pPlus = pField->pGroup1;
+    FieldEle *pT[2];
+    int i,j,l;
+
+    pTemp = NewVector(p1->nEle);
+    for(i=0; i<p1->nEle; i++)
+    {
+        pTemp->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
+    }
+    if( p1->nEle>=p2->nEle )
+    {
+        pVector = NewVector(p2->nEle-1);
+        for(i=p1->nEle-1;i>=p2->nEle-1;i--)
+        {
+            pT[0] = FiledDiv(pField,pTemp->aVecEle[i],
+                    p2->aVecEle[p2->nEle-1]);
+            for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+            {
+                pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
+                               p2->aVecEle[l],pT[0]);
+            }
+            free(pT[0]);
+        }
+        for(i=0; i<p2->nEle-1; i++)
+        {
+            pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pTemp->aVecEle[i]);
+        }
+        FreeVector(pTemp);
+    }
+    else
+    {
+        pVector = NewVector(p1->nEle);
+        for(i=0; i<p1->nEle; i++)
+        {
+            pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
+        }
+    }
+
+    return pVector;
+}
+
+void VectorSpaceTest(FieldSys *pField)
 {
 
     int i,j,k;
@@ -78,30 +204,23 @@ void NewVector(FieldSys *pField)
         }
         logc("\n");
     }
-
-}
-
-VectorEle *VectorPlus(
-        FieldSys *pField,
-        VectorEle *pVector1,
-        VectorEle *pVector2)
-{
-    int nEle = pVector1->nEle;
-    VectorEle *pVector;
-    int i;
-
-    pVector = (VectorEle *)malloc(sizeof(VectorEle));
-    memset(pVector,0,sizeof(VectorEle));
-    pVector->nEle = nEle;
-    pVector->aVecEle = malloc(nEle*sizeof(void *));
-    for(i=0;i<nEle;i++)
+    VectorEle *pTest;
+    pTest = VectorMult(pField,paVector[0],paVector[1]);
+    for(i=0; i<pTest->nEle; i++)
     {
-        pVector->aVecEle[i] = pField->pGroup1->xOperat(
-                pVector1->aVecEle[i],pVector2->aVecEle[i] );
+        logc("%.2f  ",pTest->aVecEle[i]->val);
     }
+    logc("\n");
+    pTest->aVecEle[2] = pField->pGroup1->xOperat(pTest->aVecEle[2],pTest->aVecEle[1]);
+    pTest = VectorMod(pField,pTest,paVector[1]);
+    for(i=0; i<pTest->nEle; i++)
+    {
+        logc("%.2f  ",pTest->aVecEle[i]->val);
+    }
+    logc("\n");
 
-    return pVector;
 }
+
 
 int isVecotrEqual(
         FieldSys *pField,
@@ -157,7 +276,6 @@ void FreeVector(VectorEle *pVec)
     }
     free(pVec);
 }
-
 //a(A+B) = aA + aB
 int VectorDist1(FieldSys *pField,int nEle)
 {
@@ -471,7 +589,7 @@ void isVectorSpace(FieldSys *pField,int nEle)
 void VectorTest(FieldSys *pField)
 {
     int rc;
-    NewVector(pField);
+    VectorSpaceTest(pField);
     rc = isLinearDepedent(pField,pField->paVector,COL,0,ROW);
     loga("isLinear %d",rc);
     PrintVal(pField,pField->paVector);
