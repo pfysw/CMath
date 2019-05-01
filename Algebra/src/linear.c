@@ -10,25 +10,70 @@
 #include "linear.h"
 
 
+VectorEle *NewVector(int nEle)
+{
+    VectorEle *pVector;
+    int size;
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    size = nEle*sizeof(void *);
+    pVector->aVecEle = malloc(size);
+    memset(pVector->aVecEle,0,size);
+    return pVector;
+}
+
+VectorEle *NewVector1(VectorEle *pSrc,int nEle)
+{
+    VectorEle *pVector;
+    int size;
+    pVector = (VectorEle *)malloc(sizeof(VectorEle));
+    memset(pVector,0,sizeof(VectorEle));
+    pVector->nEle = nEle;
+    size = nEle*sizeof(void *);
+    pVector->aVecEle = malloc(size);
+    memset(pVector->aVecEle,0,size);
+    pVector->pSubField = pSrc->pSubField;
+    pVector->pPoly = pSrc->pPoly;
+    pVector->eType = pSrc->eType;
+
+    return pVector;
+}
+
+
 FieldEle *EliminationUnkowns(
         FieldSys *pField,
         FieldEle *pEle1,
         FieldEle *pEle2,
-        FieldEle *pCoef)
+        FieldEle *pCoef,
+        u8 flag)
 {
     OperateSys *pPlus = pField->pGroup1;
     OperateSys *pMult = pField->pGroup2;
-    FieldEle *pT[5];
+    void *pT[5];
 
-    pT[0] = pMult->xOperat(pCoef,pEle2);
-    pT[1] = pPlus->xInvEle(pT[0]);
-    pT[2] = pPlus->xOperat(pEle1,pT[1]);
-    free(pT[0]);
-    free(pT[1]);
-    free(pEle1);
+    if( flag )
+    {
+        //这里使用向量加法
+        pPlus = pField->pParent->pGroup1;
+        //pEle2是一个数，pEle1和pCoef是一个向量
+        pT[0] = FieldMultVector(pField,pEle2,(VectorEle *)pCoef);
+        pT[1] = pPlus->xInvEle(pT[0]);
+        pT[2] = pPlus->xOperat(pEle1,pT[1]);
+    }
+    else
+    {
+        pT[0] = pMult->xOperat(pCoef,pEle2);
+        pT[1] = pPlus->xInvEle(pT[0]);
+        pT[2] = pPlus->xOperat(pEle1,pT[1]);
+    }
+    FreeGroupEle(pMult,pT[0]);
+    FreeGroupEle(pMult,pT[1]);
+    FreeGroupEle(pMult,pEle1);
 
     return pT[2];
 }
+
 
 FieldEle *FiledDiv(
         FieldSys *pField,
@@ -40,8 +85,31 @@ FieldEle *FiledDiv(
 
     pT[0] = pMult->xInvEle(pEle2);
     pT[1] = pMult->xOperat(pEle1,pT[0]);
-    free(pT[0]);
+    FreeGroupEle(pMult,pT[0]);
     return pT[1];
+}
+
+VectorEle *VectorDivField(
+        FieldSys *pField,
+        VectorEle *pVecEle,
+        FieldEle *pEle)
+{
+    OperateSys *pMult = pField->pGroup2;
+    int nEle = pVecEle->nEle;
+    FieldEle *pT[2];
+    VectorEle *pVec;
+    int i;
+
+    pVec = NewVector1(pVecEle,nEle);
+    pT[0] = pMult->xInvEle(pEle);
+    for(i=0;i<nEle;i++)
+    {
+
+        pVec->aVecEle[i] = pMult->xOperat(pVecEle->aVecEle[i],pT[0]);
+    }
+    free(pT[0]);
+
+    return pVec;
 }
 
 //float TestVal[3][5] =
@@ -83,31 +151,48 @@ VectorEle *VectorMult(
     VectorEle *pVector;
     OperateSys *pMult = pField->pGroup2;
     OperateSys *pPlus = pField->pGroup1;
-    FieldEle *pT[2];
+    void *pT[2];
     int i,j,k;
     int size;
 
-    pVector = (VectorEle *)malloc(sizeof(VectorEle));
-    memset(pVector,0,sizeof(VectorEle));
-    pVector->nEle = p1->nEle+p2->nEle-1;
-    size = pVector->nEle*sizeof(void *);
-    pVector->aVecEle = malloc(size);
-    memset(pVector->aVecEle,0,size);
+    pVector = NewVector1(p2,p1->nEle+p2->nEle-1);
+
     for(i=0;i<p1->nEle;i++)
     {
         for(j=0;j<p2->nEle;j++)
         {
+            //两个多项式中的元素两两相乘
+            //次数相等的项全部加在一起
             k = i+j;
-            pT[0] = pMult->xOperat(p1->aVecEle[i],p2->aVecEle[j]);
+            if( p1->eType!=p2->eType )
+            {
+                assert( p1->eType<p2->eType );
+                pT[0] = (void*)FieldMultVector(pField,p1->aVecEle[i],p2->aVecEle[j]);
+            }
+            else
+            {
+                pT[0] = pMult->xOperat(p1->aVecEle[i],p2->aVecEle[j]);
+            }
+
             if( pVector->aVecEle[k]==NULL )
             {
                 pVector->aVecEle[k] = pT[0];
             }
             else
             {
-                pT[1] = pPlus->xOperat(pT[0],pVector->aVecEle[k]);
-                free(pVector->aVecEle[k]);
-                free(pT[0]);
+                if( p1->eType!=p2->eType )
+                {
+                    assert( p1->eType<p2->eType );
+                    pT[1] = (void*)VectorPlus(pField,pT[0],pVector->aVecEle[k]);
+                    FreeVector((VectorEle *)pVector->aVecEle[k]);
+                    FreeVector((VectorEle *)pT[0]);
+                }
+                else
+                {
+                    pT[1] = pPlus->xOperat(pT[0],pVector->aVecEle[k]);
+                    free(pVector->aVecEle[k]);
+                    free(pT[0]);
+                }
                 pVector->aVecEle[k] = pT[1];
             }
 
@@ -117,17 +202,42 @@ VectorEle *VectorMult(
     return pVector;
 }
 
-VectorEle *NewVector(int nEle)
+//矩阵转置
+VectorEle *VectorTran(
+        FieldSys *pField,
+        VectorEle *p1)
 {
-    VectorEle *pVector;
-    int size;
-    pVector = (VectorEle *)malloc(sizeof(VectorEle));
-    memset(pVector,0,sizeof(VectorEle));
-    pVector->nEle = nEle;
-    size = nEle*sizeof(void *);
-    pVector->aVecEle = malloc(size);
-    memset(pVector->aVecEle,0,size);
-    return pVector;
+    VectorEle *p;
+    VectorEle *pCol;
+    VectorEle **paRow;
+    OperateSys *pPlus = pField->pGroup1;
+    int i,j;
+
+    assert( p1->eType>BASE_ELE_TYPE );
+
+    p = NewVector1(p1,p1->nEle);
+
+    //初始化矩阵空间
+    for(i=0;i<p1->nEle;i++)
+    {
+        pCol = p1->aVecEle[i];
+        assert( pCol->nEle==p1->nEle );
+        p->aVecEle[i] = NewVector1(pCol,p1->nEle);
+    }
+
+    //p的第i列j行等于p1的第列i行
+    for(i=0;i<p1->nEle;i++)
+    {
+        paRow = ((VectorEle *)p->aVecEle[i])->aVecEle;
+        for(j=0;j<p1->nEle;j++)
+        {
+            pCol = p1->aVecEle[j];
+            paRow[j] = pPlus->xOperat(pPlus->pBaseEle,
+                    pCol->aVecEle[i]);
+        }
+    }
+    return p;
+
 }
 
 VectorEle *VectorMod(
@@ -137,38 +247,68 @@ VectorEle *VectorMod(
 {
     VectorEle *pVector;
     VectorEle *pTemp;
-    OperateSys *pPlus = pField->pGroup1;
-    FieldEle *pT[2];
+    OperateSys *pPlus;
+    //FieldEle *pT[2]; //调试用
+    void *pT[2];
     int i,j,l;
 
-    pTemp = NewVector(p1->nEle);
+    if( p1->eType!=p2->eType )
+    {
+        pPlus = pField->pParent->pGroup1;
+    }
+    else
+    {
+        pPlus = pField->pGroup1;
+    }
+
+    pTemp = NewVector1(p1,p1->nEle);
     for(i=0; i<p1->nEle; i++)
     {
         pTemp->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
     }
+    //loga("nEle %d %d",p1->nEle,p2->nEle);
     if( p1->nEle>=p2->nEle )
     {
-        pVector = NewVector(p2->nEle-1);
+        pVector = NewVector1(p1,p2->nEle-1);
         for(i=p1->nEle-1;i>=p2->nEle-1;i--)
         {
-            pT[0] = FiledDiv(pField,pTemp->aVecEle[i],
-                    p2->aVecEle[p2->nEle-1]);
-            for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+            if( pTemp->eType==p2->eType )
             {
-                pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
-                               p2->aVecEle[l],pT[0]);
+                pT[0] = FiledDiv(pField,pTemp->aVecEle[i],
+                        p2->aVecEle[p2->nEle-1]);
+                for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+                {
+                    pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
+                                   p2->aVecEle[l],pT[0],0);
+
+//                    FieldEle *pEleOut = pTemp->aVecEle[j];
+//                    loga("i j %d %d val %.2f",i,j,pEleOut->val);
+                }
+                free(pT[0]);
             }
-            free(pT[0]);
+            else
+            {
+                pT[0] = VectorDivField(pField,pTemp->aVecEle[i],
+                        p2->aVecEle[p2->nEle-1]);
+                for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+                {
+                    pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
+                                   p2->aVecEle[l],pT[0],1);
+                }
+                FreeVector(pT[0]);
+            }
         }
         for(i=0; i<p2->nEle-1; i++)
         {
             pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pTemp->aVecEle[i]);
+            //FieldEle *pEleOut = pTemp->aVecEle[i];
+            //loga("i %d out %.2f",i,pEleOut->val);
         }
         FreeVector(pTemp);
     }
     else
     {
-        pVector = NewVector(p1->nEle);
+        pVector = NewVector1(p1,p1->nEle);
         for(i=0; i<p1->nEle; i++)
         {
             pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
@@ -191,12 +331,13 @@ void VectorSpaceTest(FieldSys *pField)
         paVector[i] = (VectorEle *)malloc(sizeof(VectorEle));
         paVector[i]->nEle = ROW;
         paVector[i]->aVecEle = malloc(ROW*sizeof(void *));
+        paVector[i]->eType = BASE_ELE_TYPE;
         for(j=0;j<ROW;j++)
         {
             k = FakeRand(i+j+5);
             SetGenPara(pField->pGroup2,k);
            // if(j==3)k=0;
-            paVector[i]->aVecEle[j] = pField->pGroup2->xGen(pField->pGroup2,k);
+            paVector[i]->aVecEle[j] = pField->pGroup1->xGen(pField->pGroup1,k);
             pEle = paVector[i]->aVecEle[j];
             char asym[2] = {'+','-'};
             //logc("%c%d/%d ",asym[pEle->eSymb],pEle->nmrtr,pEle->dnmtr);
@@ -205,17 +346,20 @@ void VectorSpaceTest(FieldSys *pField)
         logc("\n");
     }
     VectorEle *pTest;
+    FieldEle **paEle;
     pTest = VectorMult(pField,paVector[0],paVector[1]);
+    paEle = (FieldEle **)pTest->aVecEle;
     for(i=0; i<pTest->nEle; i++)
     {
-        logc("%.2f  ",pTest->aVecEle[i]->val);
+        logc("%.2f  ",paEle[i]->val);
     }
     logc("\n");
     pTest->aVecEle[2] = pField->pGroup1->xOperat(pTest->aVecEle[2],pTest->aVecEle[1]);
     pTest = VectorMod(pField,pTest,paVector[1]);
+    paEle = (FieldEle **)pTest->aVecEle;
     for(i=0; i<pTest->nEle; i++)
     {
-        logc("%.2f  ",pTest->aVecEle[i]->val);
+        logc("%.2f  ",paEle[i]->val);
     }
     logc("\n");
 
@@ -246,20 +390,17 @@ int isVecotrEqual(
 VectorEle *FieldMultVector(
         FieldSys *pField,
         void *pEle,
-        VectorEle *pVector1)
+        VectorEle *p1)
 {
-    int nEle = pVector1->nEle;
+    int nEle = p1->nEle;
     VectorEle *pVector;
     int i;
 
-    pVector = (VectorEle *)malloc(sizeof(VectorEle));
-    memset(pVector,0,sizeof(VectorEle));
-    pVector->nEle = nEle;
-    pVector->aVecEle = malloc(nEle*sizeof(void *));
+    pVector = NewVector1(p1,p1->nEle);
     for(i=0;i<nEle;i++)
     {
         pVector->aVecEle[i] = pField->pGroup2->xOperat(pEle,
-                pVector1->aVecEle[i]);
+                p1->aVecEle[i]);
     }
 
     return pVector;
@@ -475,6 +616,193 @@ int VectorIdentity(FieldSys *pField,int nEle)
 }
 
 
+void *SolveOnceEqu(
+        FieldSys *pField,
+        VectorEle **paVector,//输入的向量组
+        VectorEle *pRight,//等式右边向量
+        VectorEle *pSolve,
+        int iCol,
+        int iRow,
+        int n
+        )
+{
+    FieldEle *pT[10] = {0};
+    FieldEle *pEle;
+    FieldEle *pSum;
+    OperateSys *pPlus = pField->pGroup1;
+    OperateSys *pMult = pField->pGroup2;
+    int i;
+
+    for(i=1; i<n; i++)
+    {
+        if( 1==i )
+        {
+            pEle = paVector[i]->aVecEle[iRow];
+            pT[0] = pMult->xOperat(pEle,pSolve->aVecEle[iCol+i]);
+        }
+        else
+        {
+            pSum = pT[0];
+            pEle = paVector[i]->aVecEle[iRow];
+            pT[1] = pMult->xOperat(pEle,pSolve->aVecEle[iCol+i]);
+            pT[0] = pPlus->xOperat(pSum,pT[1]);
+            FreeGroupEle(pMult,pT[1]);
+            FreeGroupEle(pMult,pSum);
+        }
+    }
+    pT[2] = pPlus->xInvEle(pT[0]);
+    pT[3] = pPlus->xOperat(pT[2],pRight->aVecEle[iRow]);
+    pT[4] = pMult->xInvEle(paVector[0]->aVecEle[iRow]);
+    pT[5] = pMult->xOperat(pT[4],pT[3]);
+    FreeGroupEle(pMult,pT[0]);
+    FreeGroupEle(pMult,pT[2]);
+    FreeGroupEle(pMult,pT[3]);
+    FreeGroupEle(pMult,pT[4]);
+
+    return pT[5];
+}
+
+int SolveLinearEqu(
+        FieldSys *pField,
+        VectorEle **paVector,//输入的向量组
+        VectorEle *pRight,//等式右边向量
+        VectorEle *pSolve,
+        int iCol,//起始列
+        int n,//n个变量
+        int iRow,//输入的方起始行
+        int nRow
+        )
+{
+    int rc = 0;
+    int i,j;
+    OperateSys *pPlus = pField->pGroup1;
+    OperateSys *pMult = pField->pGroup2;
+    FieldEle **paEle;
+    FieldEle *pTemp;
+    FieldEle *pTempEle;
+    FieldEle *pT[10] = {0};
+
+    assert(n>0);
+    if( n==1 && nRow>0 )
+    {
+        //不断消元递归后只剩一个变量，可能还有多个方程
+        //这几个方程的解相同才可能有解
+        paEle= (FieldEle **)&((paVector[0])->aVecEle[iRow]);
+        for(i=0; i<nRow; i++)
+        {
+            if( !pPlus->xIsEqual(paEle[i],pPlus->pBaseEle) )
+            {
+                if( pT[1]==NULL )
+                {
+                    pT[0] = pMult->xInvEle(paEle[i]);
+                    pT[1] = pMult->xOperat(pT[0],pRight->aVecEle[iRow+i]);
+                    FreeGroupEle(pMult,pT[0]);
+                }
+                else
+                {
+                    pT[0] = pMult->xInvEle(paEle[i]);
+                    pT[2] = pMult->xOperat(pT[0],pRight->aVecEle[iRow+i]);
+                    if( !pPlus->xIsEqual(pT[1],pT[2]) )
+                    {
+                        FreeGroupEle(pMult,pT[0]);
+                        FreeGroupEle(pMult,pT[1]);
+                        FreeGroupEle(pMult,pT[2]);
+                        return 0;
+                    }
+                    FreeGroupEle(pMult,pT[0]);
+                    FreeGroupEle(pMult,pT[2]);
+                }
+            }
+            else if( !pPlus->xIsEqual(pRight->aVecEle[iRow+i],pPlus->pBaseEle) )
+            {
+                //左边为0，右边不为0，无解
+                FreeGroupEle(pMult,pT[1]);
+                return 0;
+            }
+            else
+            {
+                //左右都为0取单位元
+                pT[1] = pPlus->xOperat(pPlus->pBaseEle,pMult->pBaseEle);
+            }
+        }
+        //循环没返回说明这几个方程有公共解pT[1]
+        pSolve->aVecEle[iCol] = pT[1];
+
+        return 1;
+    }
+    else if( nRow==0 )
+    {
+        for(i=0; i<n; i++)
+        {
+            pSolve->aVecEle[iCol+i] = pPlus->xOperat(
+                    pPlus->pBaseEle,pMult->pBaseEle);
+        }
+        //只剩一行，但是未知变量大于1，那么必定有解
+        return 1;
+    }
+    else
+    {
+//        loga("n col %d",n);
+//        PrintVal(pField,paVector,n);
+//        loga("rigth %d",n);
+//        PrintVal(pField,&pRight,1);
+
+        paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
+        for(i=0; i<nRow; i++)
+        {
+            //找到第1列的非0元素，换到第一行
+            if( !pPlus->xIsEqual(paEle[i],pPlus->pBaseEle) )
+            {
+                for(j=0;j<n;j++)
+                {
+                    paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
+                    pTempEle = paEle[i];
+                    paEle[i] = paEle[0];
+                    paEle[0] = pTempEle;
+                }
+                break;
+            }
+        }
+        paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
+        //如果全为0，则取单位元，不影响方程解
+        if( pPlus->xIsEqual(paEle[0],pPlus->pBaseEle) )
+        {
+            rc = SolveLinearEqu(pField,&paVector[1],pRight,pSolve,iCol+1,n-1,iRow,nRow);
+            if( rc )
+            {
+                pSolve->aVecEle[iCol] = pPlus->xOperat(pPlus->pBaseEle,pMult->pBaseEle);
+            }
+        }
+        else
+        {
+            for(i=1; i<nRow; i++)
+            {
+                paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
+                pTemp = FiledDiv(pField,paEle[i],paEle[0]);
+                //loga("row %d i %d val %.2f",iRow,i,pTemp->val);
+                //pTemp是后面方程的元素与第1个方程元素的比值
+                for(j=0;j<n;j++)
+                {
+                    paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
+                    //根据这个比值消元
+                    paEle[i] = EliminationUnkowns(pField,paEle[i],paEle[0],pTemp,0);
+                }
+                paEle = (FieldEle **)&(pRight->aVecEle[iRow]);
+                paEle[i] = EliminationUnkowns(pField,paEle[i],paEle[0],pTemp,0);
+                FreeGroupEle(pMult,pTemp);
+            }
+            //消去第一个变量后，递归下一列和下一行，重新执行以上步骤
+            rc = SolveLinearEqu(pField,&paVector[1],pRight,pSolve,iCol+1,n-1,iRow+1,nRow-1);
+            if( rc )
+            {
+                pSolve->aVecEle[iCol] = SolveOnceEqu(pField,paVector,pRight,pSolve,iCol,iRow,n);
+            }
+        }
+    }
+
+    return rc;
+}
+
 int isLinearDepedent(
         FieldSys *pField,
         VectorEle **paVector,//输入的向量组
@@ -547,8 +875,8 @@ int isLinearDepedent(
                 for(j=0;j<n;j++)
                 {
                     paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
-                    //根据这个比值校园
-                    paEle[i] = EliminationUnkowns(pField,paEle[i],paEle[0],pTemp);
+                    //根据这个比值消元
+                    paEle[i] = EliminationUnkowns(pField,paEle[i],paEle[0],pTemp,0);
                 }
                 free(pTemp);
             }
@@ -562,19 +890,33 @@ int isLinearDepedent(
 
 void PrintVal(
         FieldSys *pField,
-        VectorEle **paVector)
+        VectorEle **paVector,
+        int nCol)
 {
     int i,j;
 
     FieldEle *pEle;
-    for(i=0; i<COL; i++)
+
+    if( nCol==1 )
     {
-        for(j=0;j<ROW;j++)
+        for(j=0;j<paVector[0]->nEle;j++)
         {
-            pEle = paVector[i]->aVecEle[j];
-            logc("%.2f  ",pEle->val);
+            pEle = paVector[0]->aVecEle[j];
+            logc("%-6.2f  ",pEle->val);
         }
         logc("\n");
+    }
+    else
+    {
+        for(j=0;j<paVector[0]->nEle;j++)
+        {
+            for(i=0; i<nCol; i++)
+            {
+                pEle = paVector[i]->aVecEle[j];
+                logc("%-6.2f  ",pEle->val);
+            }
+            logc("\n");
+        }
     }
 }
 
@@ -592,7 +934,7 @@ void VectorTest(FieldSys *pField)
     VectorSpaceTest(pField);
     rc = isLinearDepedent(pField,pField->paVector,COL,0,ROW);
     loga("isLinear %d",rc);
-    PrintVal(pField,pField->paVector);
+    PrintVal(pField,pField->paVector,COL);
     loga("--");
     isVectorSpace(pField,4);
 }

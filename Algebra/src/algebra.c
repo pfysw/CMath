@@ -19,6 +19,21 @@ Algebra *AlgebraOpen(void)
 	memset(pAlgebra, 0, sizeof(Algebra));
 	SetOperaSys(&pAlgebra->pOpSys);
 	SetFieldSys(&pAlgebra->pField);
+	SetVecField(&pAlgebra->pVecField,pAlgebra->pField,5);
 	return pAlgebra;
+}
+
+void AlgebraTest(Algebra *pAlgebra)
+{
+    int rc = 4;
+    FieldSys *pField = pAlgebra->pField;
+    FieldSys *pVecField = pAlgebra->pVecField;
+    loga("field");
+    IsField(pField);
+    loga("vector");
+    VectorTest(pField);
+    PolyTest(pVecField);
+//    IsGroup(pField->pGroup1);
+//    IsGroup(pField->pGroup2);
 }
 

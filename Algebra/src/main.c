@@ -17,7 +17,7 @@ int main(void)
 	setvbuf(stdout, NULL, _IONBF, 0);
 
 	PermPrintTest(pAlgebra->pOpSys);
-	FieldTest(pAlgebra->pField);
+	AlgebraTest(pAlgebra);
 //	test();
 //	loga("dd");
 //	sleep(1);

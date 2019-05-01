@@ -33,6 +33,7 @@ struct FieldSys
 {
     OperateSys *pGroup1;//加法群
     OperateSys *pGroup2;//乘法群
+    FieldSys *pParent;
     VectorEle **paVector;
 };
 

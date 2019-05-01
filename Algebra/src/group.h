@@ -13,13 +13,16 @@
 #include <arpa/inet.h>
 #include "pthread.h"
 
+#define FIELD_ELE 0
+#define VEC_ELE 1
 struct OperateSys
 {
     void *pBaseEle;
     u8 nPara;
     u8 isMult;
+    u8 typeEle;//0£ºFieldEle 1£ºVectorEle
     u8 aGenPara[3];
-    FieldSys *pFiled;
+    FieldSys *pSubFiled;
     int (*xIsEqual)(void *, void *);
     void *(*xGen)(OperateSys*,u32 iNum);
     void *(*xInvEle)(void *);
@@ -33,4 +36,5 @@ int AssociativeLaw(OperateSys *pOpSys);
 int HasIdentityEle(OperateSys *pOpSys);
 int HasInvEle(OperateSys *pOpSys);
 void *GenRatuonEle(OperateSys *pOpSys, int k);
+void FreeGroupEle(OperateSys *pOpSys,void *p);
 #endif /* GROUP_H_ */

@@ -21,10 +21,12 @@ struct Algebra
 {
     OperateSys *pOpSys;
     FieldSys *pField;
+    FieldSys *pVecField;
 };
 
 
 
 Algebra *AlgebraOpen(void);
 void IsGroup(OperateSys *pOpSys);
+void AlgebraTest(Algebra *pAlgebra);
 #endif /* ALGEBRA_H_ */

@@ -7,6 +7,7 @@
 #include "group.h"
 #include "algebra.h"
 #include "field.h"
+#include "linear.h"
 
 typedef struct FivePerm
 {
@@ -181,15 +182,33 @@ void SetGenPara(OperateSys* pOpSys, u32 iNum)
 
 void *GenRatuonEle(OperateSys *pOpSys, int k)
 {
+    k = FakeRand(k);
     SetGenPara(pOpSys,k);
     return pOpSys->xGen(pOpSys,k);
 }
 
+void FreeGroupEle(OperateSys *pOpSys,void *p)
+{
+    if( p==NULL )
+    {
+        return;
+    }
+    if( pOpSys->typeEle==FIELD_ELE )
+    {
+        free(p);
+    }
+    else if( pOpSys->typeEle==VEC_ELE )
+    {
+        FreeVector((VectorEle *)p);
+    }
+
+}
 int AssociativeLaw(OperateSys *pOpSys)
 {
     int rc = 0;
     int i,j,k;
-    FieldEle* pT[7];
+    //FieldEle* pT[7];
+    VectorEle* pT[7];
 
     for(i=0; i<10; i++)
     {
@@ -200,10 +219,10 @@ int AssociativeLaw(OperateSys *pOpSys)
             SetGenPara(pOpSys,k);
 
             pT[j] = pOpSys->xGen(pOpSys,k);
-//            loga("i %d j %d k %d",i,j,k%120);
+           // loga("i %d j %d k %d",i,j,k%120);
 //            memout(&((FivePerm*)pT[j])->aNum[0],5);
         }
-       // loga("----");
+        //loga("----");
         pT[3] = pOpSys->xOperat(pT[1],pT[2]);
         pT[4] = pOpSys->xOperat(pT[0],pT[1]);
         pT[5] = pOpSys->xOperat(pT[0],pT[3]);
@@ -213,7 +232,7 @@ int AssociativeLaw(OperateSys *pOpSys)
 
         for(j=0; j<7; j++)
         {
-            free(pT[j]);
+            FreeGroupEle(pOpSys,pT[j]);
         }
 
         assert( rc );
@@ -228,15 +247,20 @@ int HasInvEle(OperateSys *pOpSys)
 {
     int rc = 0;
     int i,k;
-    void* pEle;
-    void* pGen;
-    void* pInv;
+//    void* pEle;
+//    void* pGen;
+//    void* pInv;
+
+    VectorEle* pEle;
+    VectorEle* pGen;
+    VectorEle* pInv;
+
     for(i=0; i<10; i++)
     {
-//        //debug
+        //debug
 //        static int jj=0;
 //        jj++;
-//        if(jj==21)
+//        if(jj==41)
 //        {
 //            loga("ss");
 //        }
@@ -246,6 +270,18 @@ int HasInvEle(OperateSys *pOpSys)
         k = FakeRand(i+2);
         SetGenPara(pOpSys,k);
         pGen = pOpSys->xGen(pOpSys,k);
+
+//        if( pOpSys->isMult )
+//        {
+//            FieldEle **paEle;
+//            paEle = (FieldEle **)pGen->aVecEle;
+//            for(int ii=0; ii<pGen->nEle; ii++)
+//            {
+//                logc("%.2f  ",paEle[ii]->val);
+//            }
+//            logc("\n");
+//        }
+
         pInv = pOpSys->xInvEle(pGen);
        // pEle = pOpSys->xOperat(pGen,pInv);
         pEle = pOpSys->xOperat(pInv,pGen);
@@ -256,9 +292,9 @@ int HasInvEle(OperateSys *pOpSys)
 //            sleep(1);
 //        }
 
-        free(pGen);
-        free(pEle);
-        free(pInv);
+        FreeGroupEle(pOpSys,pGen);
+        FreeGroupEle(pOpSys,pEle);
+        FreeGroupEle(pOpSys,pInv);
         assert( rc );
     }
 
@@ -280,8 +316,8 @@ int HasIdentityEle(OperateSys *pOpSys)
         pEle = pOpSys->xOperat(pOpSys->pBaseEle,pGen);
         rc = pOpSys->xIsEqual(pGen,pEle);
 
-        free(pGen);
-        free(pEle);
+        FreeGroupEle(pOpSys,pGen);
+        FreeGroupEle(pOpSys,pEle);
         assert( rc );
     }
 
@@ -316,12 +352,12 @@ void PermPrintTest(OperateSys *pOpSys)
     pT[3] = pOpSys->xOperat(pT[2],pTest);
     loga("pT3");
     memout(&pT[3]->aNum[0],5);
-    free(pTest);
+    FreeGroupEle(pOpSys,pTest);
     pTest = pOpSys->xOperat(pT[2],&p1);
     pT[4] = pOpSys->xOperat(pTest,&p2);
     loga("pT4");
     memout(&pT[4]->aNum[0],5);
-    free(pTest);
+    FreeGroupEle(pOpSys,pTest);
     loga("is pT3==pT4 : %d",pOpSys->xIsEqual(pT[3],pT[4]));
     pTest = pOpSys->xInvEle(&p1);
     loga("inv p1");

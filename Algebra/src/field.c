@@ -41,11 +41,15 @@ int RationEqual(FieldEle *p1, FieldEle *p2)
         }
     }
 #else
-    if( p1->val>p2->val-0.001 &&
-            p1->val<p2->val+0.001 )
+    if( p1->val>p2->val-0.01 &&
+            p1->val<p2->val+0.01 )
     {
         rc = 1;
     }
+//    else
+//    {
+//        loga("delta %f",p1->val-p2->val);
+//    }
 
 #endif
 
@@ -455,7 +459,7 @@ int DistributiveLaw(FieldSys *pField)
 
         for(j=0; j<8; j++)
         {
-            free(pT[j]);
+            FreeGroupEle(pLus,pT[j]);
         }
 
         assert( rc );
@@ -483,16 +487,5 @@ void RationTest(FieldSys *pField)
     pTest = pField->pGroup2->xOperat(p1,p2);
     loga("ration %d/%d",pTest->nmrtr,pTest->dnmtr);
 
-}
-
-void FieldTest(FieldSys *pField)
-{
-    int rc = 4;
-    loga("field");
-    IsField(pField);
-    loga("vector");
-    VectorTest(pField);
-//    IsGroup(pField->pGroup1);
-//    IsGroup(pField->pGroup2);
 }
 
