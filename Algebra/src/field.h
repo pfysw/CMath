@@ -40,5 +40,5 @@ struct FieldSys
 OperateSys *RationPlusObj(void);
 void SetFieldSys(FieldSys **ppField);
 void SetGenPara(OperateSys* pOpSys, u32 iNum);
-
+void IsField(FieldSys *pField);
 #endif

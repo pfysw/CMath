@@ -38,28 +38,24 @@ int PolyEqual(VectorEle *p1,VectorEle *p2)
 
     return rc;
 }
+
 VectorEle *PolyMult(VectorEle *p1,VectorEle *p2)
 {
     VectorEle *pV[2];
     FieldSys *pField = p1->pSubField;
 
     pV[0] = VectorMult(pField,p1,p2);
-
-    FieldEle **paEle;
-    paEle = (FieldEle **)pV[0]->aVecEle;
-
-//    loga("VectorMult");
-//    for(int ii=0; ii<pV[0]->nEle; ii++)
-//    {
-//        logc("%.2f  ",paEle[ii]->val);
-//    }
-//    logc("\n");
-
     pV[1] = VectorMod(pField,pV[0],p1->pPoly);
     pV[1]->pSubField = pField;
     pV[1]->pPoly = p1->pPoly;
 
-    free(pV[0]);
+//    PrintVal(pField,(VectorEle **)&p1,1);
+//    PrintVal(pField,(VectorEle **)&p2,1);
+//    PrintVal(pField,(VectorEle **)&pV[1],1);
+//    sleep(1);
+//    assert(0);
+
+    FreeVector(pV[0]);
 
     return pV[1];
 }
@@ -157,19 +153,19 @@ VectorEle *PolyMultInv(VectorEle *p1)
     pV[2] = VectorMod(pField,pV[1],p1->pPoly);
     pV[3] = VectorTran(pField,pV[2]);
 
-    for(j=0; j<4; j++)
-    {
-        loga("j %d type %d",j,pV[0]->eType);
-        PrintVal(pField,(VectorEle **)pV[j]->aVecEle,
-                pV[j]->nEle);
-    }
+//    for(j=0; j<4; j++)
+//    {
+//        loga("j %d type %d",j,pV[0]->eType);
+//        PrintVal(pField,(VectorEle **)pV[j]->aVecEle,
+//                pV[j]->nEle);
+//    }
     pRight = NewVector1(p1,p1->nEle);
     pRight->aVecEle[0] = pPlus->xOperat(pMult->pBaseEle,pPlus->pBaseEle);
     for(i=1;i<p1->nEle;i++)
     {
         pRight->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pPlus->pBaseEle);
     }
-
+  //  loga("right type %d",pRight->eType);
 //    loga("pRight");
 //    PrintVal(pField,(VectorEle **)&pRight,1);
 
@@ -178,6 +174,11 @@ VectorEle *PolyMultInv(VectorEle *p1)
     rc = SolveLinearEqu(pField,(VectorEle **)pV[3]->aVecEle,pRight,p,
             0,p1->nEle,0,p1->nEle);
 
+    for(i=0;i<4;i++)
+    {
+        FreeVector(pV[i]);
+    }
+    FreeVector(pRight);
 //    loga("p");
 //    PrintVal(pField,(VectorEle **)&p,1);
     assert(rc);
@@ -272,6 +273,10 @@ VectorEle *NewPolyVec(FieldSys *pField,int nEle)
     int i;
     u8 aCoef[10] = {0};
     aCoef[0] = 1;
+    aCoef[1] = 0;
+    aCoef[2] = 1;
+    aCoef[3] = 1;
+    aCoef[4] = 1;
     aCoef[5] = 1;
     //如果多项式是x^3+1=0
     //那么向量空间的最大次数就是x^2
@@ -308,6 +313,7 @@ void SetVecField(
 void PolyTest(FieldSys *pField)
 {
     loga("poly");
-    IsGroup(pField->pGroup1);
-    IsGroup(pField->pGroup2);
+    IsField(pField);
+//    IsGroup(pField->pGroup1);
+//    IsGroup(pField->pGroup2);
 }

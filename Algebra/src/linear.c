@@ -67,9 +67,9 @@ FieldEle *EliminationUnkowns(
         pT[1] = pPlus->xInvEle(pT[0]);
         pT[2] = pPlus->xOperat(pEle1,pT[1]);
     }
-    FreeGroupEle(pMult,pT[0]);
-    FreeGroupEle(pMult,pT[1]);
-    FreeGroupEle(pMult,pEle1);
+    FreeGroupEle(pPlus,pT[0]);
+    FreeGroupEle(pPlus,pT[1]);
+    FreeGroupEle(pPlus,pEle1);
 
     return pT[2];
 }
@@ -104,10 +104,9 @@ VectorEle *VectorDivField(
     pT[0] = pMult->xInvEle(pEle);
     for(i=0;i<nEle;i++)
     {
-
         pVec->aVecEle[i] = pMult->xOperat(pVecEle->aVecEle[i],pT[0]);
     }
-    free(pT[0]);
+    FreeGroupEle(pMult,pT[0]);
 
     return pVec;
 }
@@ -274,6 +273,7 @@ VectorEle *VectorMod(
         {
             if( pTemp->eType==p2->eType )
             {
+                //除式最高次项系数与pTemp元的比值
                 pT[0] = FiledDiv(pField,pTemp->aVecEle[i],
                         p2->aVecEle[p2->nEle-1]);
                 for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
@@ -284,7 +284,7 @@ VectorEle *VectorMod(
 //                    FieldEle *pEleOut = pTemp->aVecEle[j];
 //                    loga("i j %d %d val %.2f",i,j,pEleOut->val);
                 }
-                free(pT[0]);
+                FreeGroupEle(pPlus,pT[0]);
             }
             else
             {
@@ -411,12 +411,23 @@ void FreeVector(VectorEle *pVec)
     int nEle = pVec->nEle;
     int i;
 
-    for(i=0; i<nEle; i++)
+    if( pVec->eType!=BASE_ELE_TYPE )
     {
-        free(pVec->aVecEle[i]);
+        for(i=0; i<nEle; i++)
+        {
+            FreeVector(pVec->aVecEle[i]);
+        }
+    }
+    else
+    {
+        for(i=0; i<nEle; i++)
+        {
+            free(pVec->aVecEle[i]);
+        }
     }
     free(pVec);
 }
+
 //a(A+B) = aA + aB
 int VectorDist1(FieldSys *pField,int nEle)
 {
