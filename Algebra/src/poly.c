@@ -11,6 +11,33 @@
 #include "linear.h"
 
 
+void SetVecEle(
+        FieldSys *pField,
+        VectorEle *p,
+        int nEle,
+        int *aCoef)
+{
+    OperateSys *pPlus = pField->pGroup1;
+    u8 iGen;
+    int i;
+
+    for(i=0; i<nEle; i++)
+    {
+        if( aCoef[i]<0 )
+        {
+            iGen = -aCoef[i];
+            pPlus->aGenPara[0] = 1;
+        }
+        else
+        {
+            pPlus->aGenPara[0] = 0;
+            iGen = aCoef[i];
+        }
+        p->aVecEle[i] = pPlus->xGen(pPlus,iGen);
+    }
+}
+
+
 VectorEle *PolyGen(OperateSys *pOpSys,u32 num)
 {
     VectorEle *p;
@@ -21,7 +48,7 @@ VectorEle *PolyGen(OperateSys *pOpSys,u32 num)
     p = NewVector(pOpSys->nPara);
     for(i=0; i<p->nEle; i++)
     {
-        p->aVecEle[i] = GenRatuonEle(pPlus,num+i+k+10);
+        p->aVecEle[i] = GenRationEle(pPlus,num+i+k+10);
 
     }
     p->pSubField = pOpSys->pSubFiled;
@@ -45,7 +72,7 @@ VectorEle *PolyMult(VectorEle *p1,VectorEle *p2)
     FieldSys *pField = p1->pSubField;
 
     pV[0] = VectorMult(pField,p1,p2);
-    pV[1] = VectorMod(pField,pV[0],p1->pPoly);
+    pV[1] = VectorMod(pField,pV[0],p1->pPoly,0);
     pV[1]->pSubField = pField;
     pV[1]->pPoly = p1->pPoly;
 
@@ -134,6 +161,7 @@ VectorEle *CreatUnkownPoly(FieldSys *pField,VectorEle *pPoly)
     return p;
 }
 
+
 VectorEle *PolyMultInv(VectorEle *p1)
 {
     FieldSys *pField = p1->pSubField;
@@ -145,30 +173,37 @@ VectorEle *PolyMultInv(VectorEle *p1)
     int i,j;
     int rc;
 
-//    PrintVal(pField,(VectorEle **)&p1,1);
-//    PrintVal(pField,(VectorEle **)&p1->pPoly,1);
+
+//    int aSet1[3] = {-1,1,0} ;
+//    SetVecEle(pField,p1,3,aSet1);
 
     pV[0] = CreatUnkownPoly(pField,p1->pPoly);
     pV[1] = VectorMult(pField,p1,pV[0]);
-    pV[2] = VectorMod(pField,pV[1],p1->pPoly);
+    pV[2] = VectorMod(pField,pV[1],p1->pPoly,0);
     pV[3] = VectorTran(pField,pV[2]);
 
+
+//    PrintVal(pField,(VectorEle **)&p1,1);
+//    PrintVal(pField,(VectorEle **)&p1->pPoly,1);
 //    for(j=0; j<4; j++)
 //    {
 //        loga("j %d type %d",j,pV[0]->eType);
 //        PrintVal(pField,(VectorEle **)pV[j]->aVecEle,
 //                pV[j]->nEle);
 //    }
+
     pRight = NewVector1(p1,p1->nEle);
     pRight->aVecEle[0] = pPlus->xOperat(pMult->pBaseEle,pPlus->pBaseEle);
     for(i=1;i<p1->nEle;i++)
     {
         pRight->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pPlus->pBaseEle);
     }
-  //  loga("right type %d",pRight->eType);
-//    loga("pRight");
-//    PrintVal(pField,(VectorEle **)&pRight,1);
 
+//    int aSet2[3] = {1,1,-2} ;
+//    SetVecEle(pField,pRight,3,aSet2);
+    // loga("right type %d",pRight->eType);
+//     loga("pRight");
+//     PrintVal(pField,(VectorEle **)&pRight,1);
 
     p = NewVector1(p1,p1->nEle);
     rc = SolveLinearEqu(pField,(VectorEle **)pV[3]->aVecEle,pRight,p,
@@ -179,9 +214,15 @@ VectorEle *PolyMultInv(VectorEle *p1)
         FreeVector(pV[i]);
     }
     FreeVector(pRight);
+
+    assert(rc);
+
 //    loga("p");
 //    PrintVal(pField,(VectorEle **)&p,1);
-    assert(rc);
+//    loga("");
+
+//    sleep(1);
+//    assert(0);
 
     return p;
 }
@@ -221,6 +262,40 @@ OperateSys *PolyPlusObj(
     plus.pSubFiled = pField;
 
     return &plus;
+}
+
+void *CalPolyVal(
+        FieldSys *pField,
+        VectorEle *pPoly,
+        void *p1
+        )
+{
+    OperateSys *pMult = pField->pGroup2;
+    OperateSys *pPlus = pField->pGroup1;
+    int i,j;
+    void *pExp;
+    void *pSum;
+    void *pT[5];
+
+    pSum = pPlus->xOperat(pPlus->pBaseEle,pPlus->pBaseEle);
+    for(i=0;i<pPoly->nEle;i++)
+    {
+        pExp = pPlus->xOperat(pPlus->pBaseEle,pMult->pBaseEle);
+        for(j=0; j<i; j++)
+        {
+            pT[0] = pExp;
+            pExp = pMult->xOperat(pExp,p1);
+            FreeGroupEle(pMult,pT[0]);
+        }
+        pT[0] = pExp;
+        pExp = FieldMultVector(pPoly->pSubField,pPoly->aVecEle[i],pExp);
+        FreeGroupEle(pMult,pT[0]);
+        pT[0] = pSum;
+        pSum = pPlus->xOperat(pSum,pExp);
+        FreeGroupEle(pMult,pT[0]);
+    }
+
+    return pSum;
 }
 
 OperateSys *PolyMultObj(
@@ -266,15 +341,97 @@ OperateSys *PolyMultObj(
     return &mult;
 }
 
+void *GenVecEle(FieldSys *pField, int num)
+{
+    OperateSys *pPlus = pField->pGroup1;
+    OperateSys *pMult = pField->pGroup2;
+    void *pVec;
+    void *pTemp;
+    int i;
+    pVec = pPlus->xOperat(pPlus->pBaseEle,pPlus->pBaseEle);
+    for(i=0;i<num;i++)
+    {
+        pTemp = pVec;
+        pVec = pPlus->xOperat(pVec,pMult->pBaseEle);
+        FreeGroupEle(pPlus,pTemp);
+    }
+
+    return pVec;
+
+}
+//根据参数来设置扩域后的多项式
+VectorEle *NewPolyVecPara(
+        FieldSys *pField,
+        VectorEle *pPoly,
+        int (*aPara)[3])
+{
+    VectorEle *p;
+    VectorEle *pBase = pField->pGroup1->pBaseEle;
+    VectorEle *pVec;
+    VectorEle *pTemp;
+    int i,j;
+
+    assert( pBase->eType==pPoly->eType );
+
+    p = NewVector(pPoly->nEle);
+    p->pSubField = pField;
+    p->eType = pPoly->eType+1;
+    p->pPoly = NULL;
+
+    for(i=0; i<pPoly->nEle; i++)
+    {
+        p->aVecEle[i] = NewVector1(pPoly,pBase->nEle);
+
+        pTemp = NewVector1(pBase,pBase->nEle);
+        SetVecEle(pBase->pSubField,pTemp,pTemp->nEle,aPara[i]);
+        p->aVecEle[i] = pTemp;
+            //FreeVector(pTemp);
+    }
+
+    return p;
+}
+
+//把多项式系数写成扩充的新域的形式
+VectorEle *GetNewFieldPoly(FieldSys *pField,VectorEle *pPoly)
+{
+    OperateSys *pPlus = pPoly->pSubField->pGroup1;
+    VectorEle *p;
+    VectorEle *pZero = pPlus->pBaseEle;
+    VectorEle *pBase = pField->pGroup1->pBaseEle;
+    VectorEle *pVec;
+    int i,j;
+
+    assert( pBase->eType==pPoly->eType );
+
+    p = NewVector(pPoly->nEle);
+    p->pSubField = pField;
+    p->eType = pPoly->eType+1;
+    p->pPoly = NULL;
+
+    for(i=0; i<pPoly->nEle; i++)
+    {
+        p->aVecEle[i] = NewVector1(pPoly,pBase->nEle);
+        pVec =  p->aVecEle[i];
+        pVec->aVecEle[0] = pPlus->xOperat(pZero,pPoly->aVecEle[i]);
+        for(j=1; j<pBase->nEle; j++)
+        {
+            pVec->aVecEle[j] = pPlus->xOperat(pZero,pZero);
+        }
+    }
+
+    return p;
+}
+
 VectorEle *NewPolyVec(FieldSys *pField,int nEle)
 {
     OperateSys *pPlus = pField->pGroup1;
     VectorEle *p;
+    u8 iGen;
     int i;
-    u8 aCoef[10] = {0};
-    aCoef[0] = 1;
-    aCoef[1] = 0;
-    aCoef[2] = 1;
+    int aCoef[10] = {0};
+    aCoef[0] = -1;
+    aCoef[1] = 1;
+    aCoef[2] = 0;
     aCoef[3] = 1;
     aCoef[4] = 1;
     aCoef[5] = 1;
@@ -287,8 +444,19 @@ VectorEle *NewPolyVec(FieldSys *pField,int nEle)
     p->pSubField = pField;
     for(i=0; i<nEle; i++)
     {
-        p->aVecEle[i] = pPlus->xGen(pPlus,aCoef[i]);
+        if( aCoef[i]<0 )
+        {
+            iGen = -aCoef[i];
+            pPlus->aGenPara[0] = 1;
+        }
+        else
+        {
+            pPlus->aGenPara[0] = 0;
+            iGen = aCoef[i];
+        }
+        p->aVecEle[i] = pPlus->xGen(pPlus,iGen);
     }
+    pPlus->aGenPara[0] = 0;
     p->aVecEle[i] = pPlus->xGen(pPlus,1);
 
     return p;
@@ -312,8 +480,43 @@ void SetVecField(
 
 void PolyTest(FieldSys *pField)
 {
+    int rc = 0;
+    VectorEle *pTest;
+    VectorEle *pRslt;
+    VectorEle *pNewPoly;
+    VectorEle *pBase = pField->pGroup1->pBaseEle;
+    OperateSys *pMult = pField->pGroup2;
+    OperateSys *pPlus = pField->pGroup1;
+
     loga("poly");
     IsField(pField);
-//    IsGroup(pField->pGroup1);
-//    IsGroup(pField->pGroup2);
+
+
+    int aPara[3][3] =
+    {
+        0,-1,0,
+        1,0,0,
+        0,0,0
+    };
+    pTest = NewVector1(pBase,pBase->nEle);
+    int aSet1[3] = {-1,1,0} ;
+    SetVecEle(pBase->pSubField,pTest,3,aSet1);
+    pRslt = pMult->xInvEle(pTest);
+    PrintVal(pField,(VectorEle **)&pRslt,1);
+    pRslt = pMult->xOperat(pRslt,pBase->pPoly);
+    pRslt = VectorMod(pBase->pSubField,pBase->pPoly,pTest,0);
+    pNewPoly = GetNewFieldPoly(pField,pBase->pPoly);
+    loga("--");
+    PrintVal(pField,(VectorEle **)pNewPoly->aVecEle,pNewPoly->nEle);
+    pTest = NewPolyVecPara(pField,pTest,aPara);
+    loga("--");
+    PrintVal(pField,(VectorEle **)pTest->aVecEle,pTest->nEle);
+    loga("--");
+    pRslt = VectorMod(pField,pNewPoly,pTest,1);
+    //pRslt = CalPolyVal(pField,pBase->pPoly,pTest);
+    loga("r--");
+    PrintVal(pField,(VectorEle **)pRslt->aVecEle,pRslt->nEle);
+    PrintVal(pField,(VectorEle **)&pBase->pPoly,1);
+    rc = pField->pGroup1->xIsEqual(pBase,pRslt);
+    assert(rc);
 }

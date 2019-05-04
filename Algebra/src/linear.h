@@ -49,7 +49,8 @@ VectorEle *VectorMult(
 VectorEle *VectorMod(
         FieldSys *pField,
         VectorEle *p1,
-        VectorEle *p2);
+        VectorEle *p2,
+        u8 bQuotient);
 VectorEle *NewVector(int nEle);
 VectorEle *NewVector1(VectorEle *pSrc,int nEle);
 int SolveLinearEqu(

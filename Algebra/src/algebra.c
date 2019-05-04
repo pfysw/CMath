@@ -5,6 +5,7 @@
  *      Author: Administrator
  */
 #include"algebra.h"
+#include"group.h"
 
 void IsGroup(OperateSys *pOpSys)
 {
@@ -19,7 +20,7 @@ Algebra *AlgebraOpen(void)
 	memset(pAlgebra, 0, sizeof(Algebra));
 	SetOperaSys(&pAlgebra->pOpSys);
 	SetFieldSys(&pAlgebra->pField);
-	SetVecField(&pAlgebra->pVecField,pAlgebra->pField,5);
+	SetVecField(&pAlgebra->pVecField,pAlgebra->pField,3);
 	return pAlgebra;
 }
 

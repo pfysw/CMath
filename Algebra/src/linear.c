@@ -242,7 +242,8 @@ VectorEle *VectorTran(
 VectorEle *VectorMod(
         FieldSys *pField,
         VectorEle *p1,
-        VectorEle *p2)
+        VectorEle *p2,
+        u8 bQuotient)
 {
     VectorEle *pVector;
     VectorEle *pTemp;
@@ -250,6 +251,7 @@ VectorEle *VectorMod(
     //FieldEle *pT[2]; //调试用
     void *pT[2];
     int i,j,l;
+    int mxExp;
 
     if( p1->eType!=p2->eType )
     {
@@ -265,44 +267,90 @@ VectorEle *VectorMod(
     {
         pTemp->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
     }
-    //loga("nEle %d %d",p1->nEle,p2->nEle);
-    if( p1->nEle>=p2->nEle )
+
+    for(i=p2->nEle-1; i>0; i--)
     {
-        pVector = NewVector1(p1,p2->nEle-1);
-        for(i=p1->nEle-1;i>=p2->nEle-1;i--)
+        if( !pField->pGroup1->xIsEqual(
+                pField->pGroup1->pBaseEle,p2->aVecEle[i]) )
+        {
+            mxExp = i;
+            break;
+        }
+    }
+
+    //loga("nEle %d %d",p1->nEle,p2->nEle);
+    if( p1->nEle>=mxExp+1 )
+    {
+        if( bQuotient )
+        {
+            pVector = NewVector1(p1,p1->nEle-mxExp);
+        }
+        else
+        {
+            pVector = NewVector1(p1,mxExp);
+        }
+
+        for(i=p1->nEle-1;i>=mxExp;i--)
         {
             if( pTemp->eType==p2->eType )
             {
                 //除式最高次项系数与pTemp元的比值
                 pT[0] = FiledDiv(pField,pTemp->aVecEle[i],
-                        p2->aVecEle[p2->nEle-1]);
-                for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+                        p2->aVecEle[mxExp]);
+
+                for(j=i,l=mxExp;j>i-mxExp-1;j--,l--)
                 {
                     pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
                                    p2->aVecEle[l],pT[0],0);
-
 //                    FieldEle *pEleOut = pTemp->aVecEle[j];
 //                    loga("i j %d %d val %.2f",i,j,pEleOut->val);
                 }
-                FreeGroupEle(pPlus,pT[0]);
+                if( p1->eType>0 )
+                {
+                    loga("Tt0");
+                    PrintVal(pField,(VectorEle *)&pT[0],1);
+                    loga("p2");
+                    PrintVal(pField,(VectorEle *)p2->aVecEle,p2->nEle);
+                    loga("TEMP");
+                    PrintVal(pField,(VectorEle **)pTemp->aVecEle,pTemp->nEle);
+                }
+                if( bQuotient )
+                {
+                    pVector->aVecEle[i-mxExp] = pT[0];
+                }
+                else
+                {
+                    FreeGroupEle(pPlus,pT[0]);
+                }
+
             }
             else
             {
                 pT[0] = VectorDivField(pField,pTemp->aVecEle[i],
-                        p2->aVecEle[p2->nEle-1]);
-                for(j=i,l=p2->nEle-1;j>i-p2->nEle;j--,l--)
+                        p2->aVecEle[mxExp]);
+                for(j=i,l=p2->nEle-1;j>i-mxExp-1;j--,l--)
                 {
                     pTemp->aVecEle[j] = EliminationUnkowns(pField,pTemp->aVecEle[j],
                                    p2->aVecEle[l],pT[0],1);
                 }
-                FreeVector(pT[0]);
+                if( bQuotient )
+                {
+                    pVector->aVecEle[i-mxExp] = pT[0];
+                }
+                else
+                {
+                    FreeVector(pT[0]);
+                }
             }
         }
-        for(i=0; i<p2->nEle-1; i++)
+        if( !bQuotient )
         {
-            pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pTemp->aVecEle[i]);
-            //FieldEle *pEleOut = pTemp->aVecEle[i];
-            //loga("i %d out %.2f",i,pEleOut->val);
+            for(i=0; i<mxExp; i++)
+            {
+                pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pTemp->aVecEle[i]);
+                //FieldEle *pEleOut = pTemp->aVecEle[i];
+                //loga("i %d out %.2f",i,pEleOut->val);
+            }
         }
         FreeVector(pTemp);
     }
@@ -311,7 +359,14 @@ VectorEle *VectorMod(
         pVector = NewVector1(p1,p1->nEle);
         for(i=0; i<p1->nEle; i++)
         {
-            pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
+            if( bQuotient )
+            {
+                pVector->aVecEle[i] =pPlus->xOperat(pPlus->pBaseEle,pPlus->pBaseEle);
+            }
+            else
+            {
+                pVector->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,p1->aVecEle[i]);
+            }
         }
     }
 
@@ -355,7 +410,7 @@ void VectorSpaceTest(FieldSys *pField)
     }
     logc("\n");
     pTest->aVecEle[2] = pField->pGroup1->xOperat(pTest->aVecEle[2],pTest->aVecEle[1]);
-    pTest = VectorMod(pField,pTest,paVector[1]);
+    pTest = VectorMod(pField,pTest,paVector[1],0);
     paEle = (FieldEle **)pTest->aVecEle;
     for(i=0; i<pTest->nEle; i++)
     {
@@ -696,6 +751,10 @@ int SolveLinearEqu(
     assert(n>0);
     if( n==1 && nRow>0 )
     {
+//        loga("n col %d",n);
+//        PrintVal(pField,paVector,n);
+//        loga("rigth %d",n);
+//        PrintVal(pField,&pRight,1);
         //不断消元递归后只剩一个变量，可能还有多个方程
         //这几个方程的解相同才可能有解
         paEle= (FieldEle **)&((paVector[0])->aVecEle[iRow]);

@@ -201,6 +201,7 @@ FieldEle *RationMultInv(FieldEle *p1)
     p->nmrtr = p1->dnmtr;
     p->eSymb = p1->eSymb;
 
+    assert(p1->nmrtr!=0);
     p->val = 1/p1->val;
 
     return p;

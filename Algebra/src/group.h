@@ -35,6 +35,6 @@ pthread_t CreatthreadTest(OperateSys *pOpSys);
 int AssociativeLaw(OperateSys *pOpSys);
 int HasIdentityEle(OperateSys *pOpSys);
 int HasInvEle(OperateSys *pOpSys);
-void *GenRatuonEle(OperateSys *pOpSys, int k);
+void *GenRationEle(OperateSys *pOpSys, int k);
 void FreeGroupEle(OperateSys *pOpSys,void *p);
 #endif /* GROUP_H_ */
