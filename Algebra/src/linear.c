@@ -129,10 +129,7 @@ VectorEle *VectorPlus(
     VectorEle *pVector;
     int i;
 
-    pVector = (VectorEle *)malloc(sizeof(VectorEle));
-    memset(pVector,0,sizeof(VectorEle));
-    pVector->nEle = nEle;
-    pVector->aVecEle = malloc(nEle*sizeof(void *));
+    pVector = NewVector1(pVector1,nEle);
     for(i=0;i<nEle;i++)
     {
         pVector->aVecEle[i] = pField->pGroup1->xOperat(
@@ -255,6 +252,7 @@ VectorEle *VectorMod(
 
     if( p1->eType!=p2->eType )
     {
+        assert(p1->eType>p2->eType);
         pPlus = pField->pParent->pGroup1;
     }
     else
@@ -305,15 +303,15 @@ VectorEle *VectorMod(
 //                    FieldEle *pEleOut = pTemp->aVecEle[j];
 //                    loga("i j %d %d val %.2f",i,j,pEleOut->val);
                 }
-                if( p1->eType>0 )
-                {
-                    loga("Tt0");
-                    PrintVal(pField,(VectorEle *)&pT[0],1);
-                    loga("p2");
-                    PrintVal(pField,(VectorEle *)p2->aVecEle,p2->nEle);
-                    loga("TEMP");
-                    PrintVal(pField,(VectorEle **)pTemp->aVecEle,pTemp->nEle);
-                }
+//                if( p1->eType>0 )
+//                {
+//                    loga("Tt0");
+//                    PrintVal(pField,(VectorEle *)&pT[0],1);
+//                    loga("p2");
+//                    PrintVal(pField,(VectorEle *)p2->aVecEle,p2->nEle);
+//                    loga("TEMP");
+//                    PrintVal(pField,(VectorEle **)pTemp->aVecEle,pTemp->nEle);
+//                }
                 if( bQuotient )
                 {
                     pVector->aVecEle[i-mxExp] = pT[0];
@@ -728,6 +726,7 @@ void *SolveOnceEqu(
     return pT[5];
 }
 
+#define SOLVE_DEBUG 0
 int SolveLinearEqu(
         FieldSys *pField,
         VectorEle **paVector,//输入的向量组
@@ -751,10 +750,25 @@ int SolveLinearEqu(
     assert(n>0);
     if( n==1 && nRow>0 )
     {
-//        loga("n col %d",n);
-//        PrintVal(pField,paVector,n);
-//        loga("rigth %d",n);
-//        PrintVal(pField,&pRight,1);
+#if SOLVE_DEBUG
+        if(pField->pGroup1->typeEle>0)
+        {
+            loga("n col %d",n);
+            for(i=0;i<n;i++)
+            {
+                PrintVal(pField,paVector[i]->aVecEle,paVector[i]->nEle);
+            }
+            loga("rigth %d",n);
+            PrintVal(pField,pRight->aVecEle,pRight->nEle);
+        }
+        else
+        {
+            loga("n col %d",n);
+            PrintVal(pField,paVector,n);
+            loga("rigth %d",n);
+            PrintVal(pField,&pRight,1);
+        }
+#endif
         //不断消元递归后只剩一个变量，可能还有多个方程
         //这几个方程的解相同才可能有解
         paEle= (FieldEle **)&((paVector[0])->aVecEle[iRow]);
@@ -766,6 +780,25 @@ int SolveLinearEqu(
                 {
                     pT[0] = pMult->xInvEle(paEle[i]);
                     pT[1] = pMult->xOperat(pT[0],pRight->aVecEle[iRow+i]);
+#if SOLVE_DEBUG
+                    if(pField->pGroup1->typeEle>0)
+                    {
+                        loga("solve ");
+                        PrintVal(pField,&paEle[i],1);
+                        PrintVal(pField,&pRight->aVecEle[iRow+i],1);
+                        PrintVal(pField,&pT[1],1);
+                        loga("inv");
+                        PrintVal(pField,&pT[0],1);
+                        VectorEle *test;
+                        FieldSys * sub = (( VectorEle *)pT[1])->pSubField;
+                        VectorEle *poly = (( VectorEle *)pT[1])->pPoly;
+                        PrintVal(pField,&poly,1);
+                        test = VectorMult(sub,pT[1],paEle[i]);
+                        PrintVal(pField,&test,1);
+                        test = pMult->xOperat(pT[0],paEle[i]);
+                        PrintVal(pField,&test,1);
+                    }
+#endif
                     FreeGroupEle(pMult,pT[0]);
                 }
                 else
@@ -812,20 +845,41 @@ int SolveLinearEqu(
     }
     else
     {
-//        loga("n col %d",n);
-//        PrintVal(pField,paVector,n);
-//        loga("rigth %d",n);
-//        PrintVal(pField,&pRight,1);
-
+#if SOLVE_DEBUG
+        if(pField->pGroup1->typeEle>0)
+        {
+            loga("n col %d",n);
+            for(i=0;i<n;i++)
+            {
+                PrintVal(pField,paVector[i]->aVecEle,paVector[i]->nEle);
+            }
+            loga("rigth %d",n);
+            PrintVal(pField,pRight->aVecEle,pRight->nEle);
+        }
+        else
+        {
+            loga("n col %d",n);
+            PrintVal(pField,paVector,n);
+            loga("rigth %d",n);
+            PrintVal(pField,&pRight,1);
+        }
+#endif
         paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
         for(i=0; i<nRow; i++)
         {
             //找到第1列的非0元素，换到第一行
             if( !pPlus->xIsEqual(paEle[i],pPlus->pBaseEle) )
             {
-                for(j=0;j<n;j++)
+                for(j=0;j<=n;j++)
                 {
-                    paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
+                    if( j==n )
+                    {
+                        paEle = (FieldEle **)&pRight->aVecEle[iRow];
+                    }
+                    else
+                    {
+                        paEle = (FieldEle **)&((paVector[j])->aVecEle[iRow]);
+                    }
                     pTempEle = paEle[i];
                     paEle[i] = paEle[0];
                     paEle[0] = pTempEle;
@@ -849,6 +903,22 @@ int SolveLinearEqu(
             {
                 paEle = (FieldEle **)&((paVector[0])->aVecEle[iRow]);
                 pTemp = FiledDiv(pField,paEle[i],paEle[0]);
+#if SOLVE_DEBUG
+                //打印消元时的比值
+                if(pField->pGroup1->typeEle>0)
+                {
+                    loga("i %d",i);
+                    PrintVal(pField,&pTemp,1);
+                }
+                else
+                {
+                    if( iRow==2 && i==1 && pTemp->val>4.1 && pTemp->val<4.3)
+                    {
+                        assert(0);
+                    }
+                    loga("row %d i %d val %.2f",iRow,i,pTemp->val);
+                }
+#endif
                 //loga("row %d i %d val %.2f",iRow,i,pTemp->val);
                 //pTemp是后面方程的元素与第1个方程元素的比值
                 for(j=0;j<n;j++)
@@ -958,6 +1028,21 @@ int isLinearDepedent(
     return rc;
 }
 
+void PrintVec(FieldSys *pField,VectorEle *p)
+{
+    if( p->eType<2 )
+    {
+        PrintVal(pField,(VectorEle **)p->aVecEle,p->nEle);
+    }
+    else
+    {
+        VectorEle **paVec = (VectorEle **)p->aVecEle;
+        for(int i=0; i<p->nEle; i++)
+        {
+            PrintVal(pField,(VectorEle **)paVec[i]->aVecEle,paVec[i]->nEle);
+        }
+    }
+}
 void PrintVal(
         FieldSys *pField,
         VectorEle **paVector,
@@ -988,6 +1073,7 @@ void PrintVal(
             logc("\n");
         }
     }
+    logc("\n");
 }
 
 void isVectorSpace(FieldSys *pField,int nEle)

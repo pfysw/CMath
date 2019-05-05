@@ -31,6 +31,7 @@ u32 IntegerGcd(u32 a, u32 b)
 int RationEqual(FieldEle *p1, FieldEle *p2)
 {
     int rc = 0;
+    float delta;
 
 #if 0//判断分数是否相等
     if( p1->dnmtr*p2->nmrtr==p2->dnmtr*p1->nmrtr )
@@ -41,14 +42,24 @@ int RationEqual(FieldEle *p1, FieldEle *p2)
         }
     }
 #else
-    if( p1->val>p2->val-0.01 &&
-            p1->val<p2->val+0.01 )
+
+    delta = p1->val-p2->val;
+    delta = delta/p1->val;
+    if( p1->val<10000 && p1->val>-10000 )
+    {
+        if( p1->val>p2->val-0.01 &&
+                p1->val<p2->val+0.01 )
+        {
+            rc = 1;
+        }
+    }
+    else if( delta>-0.0005 && delta<0.0005 )
     {
         rc = 1;
     }
-//    else
+//    if( !rc )
 //    {
-//        loga("delta %f",p1->val-p2->val);
+//        loga("delta %.2f,%.2f",p1->val,p2->val);
 //    }
 
 #endif

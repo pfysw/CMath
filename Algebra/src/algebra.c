@@ -7,6 +7,8 @@
 #include"algebra.h"
 #include"group.h"
 
+#define POLY_EXP 5
+
 void IsGroup(OperateSys *pOpSys)
 {
     AssociativeLaw(pOpSys);
@@ -20,7 +22,7 @@ Algebra *AlgebraOpen(void)
 	memset(pAlgebra, 0, sizeof(Algebra));
 	SetOperaSys(&pAlgebra->pOpSys);
 	SetFieldSys(&pAlgebra->pField);
-	SetVecField(&pAlgebra->pVecField,pAlgebra->pField,3);
+	SetVecField(&pAlgebra->pVecField,pAlgebra->pField,POLY_EXP);
 	return pAlgebra;
 }
 

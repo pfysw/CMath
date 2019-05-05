@@ -71,4 +71,5 @@ void PrintVal(
         FieldSys *pField,
         VectorEle **paVector,
         int nCol);
+void PrintVec(FieldSys *pField,VectorEle *p);
 #endif /* LINEAR_H_ */

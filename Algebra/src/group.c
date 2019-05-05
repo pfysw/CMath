@@ -180,7 +180,7 @@ void SetGenPara(OperateSys* pOpSys, u32 iNum)
     }
 }
 
-void *GenRationEle(OperateSys *pOpSys, int k)
+void *GenSubFieldEle(OperateSys *pOpSys, int k)
 {
     k = FakeRand(k);
     SetGenPara(pOpSys,k);
