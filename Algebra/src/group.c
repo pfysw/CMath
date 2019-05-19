@@ -8,6 +8,7 @@
 #include "algebra.h"
 #include "field.h"
 #include "linear.h"
+#include "poly.h"
 
 typedef struct FivePerm
 {
@@ -247,20 +248,21 @@ int HasInvEle(OperateSys *pOpSys)
 {
     int rc = 0;
     int i,k;
-//    void* pEle;
-//    void* pGen;
-//    void* pInv;
 
-    VectorEle* pEle;
-    VectorEle* pGen;
-    VectorEle* pInv;
+//    VectorEle* pEle;
+//    VectorEle* pGen;
+//    VectorEle* pInv;
+
+    MapEle* pEle;
+    MapEle* pGen;
+    MapEle* pInv;
 
     for(i=0; i<10; i++)
     {
-        //debug
+//        //debug
 //        static int jj=0;
 //        jj++;
-//        if(jj==41)
+//        if(jj==71)
 //        {
 //            loga("ss");
 //        }
@@ -330,7 +332,7 @@ void PermPrintTest(OperateSys *pOpSys)
     FivePerm* pTest;
     FivePerm* pT[5];
 
-    loga("sd %d",((FivePerm*)pOpSys->pBaseEle)->aNum[3]);
+    loga("test %d",((FivePerm*)pOpSys->pBaseEle)->aNum[3]);
     pT[0] = pOpSys->xGen(pOpSys,1);
 //    sleep(1);
 //    assert(0);

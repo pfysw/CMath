@@ -438,6 +438,7 @@ void SetFieldSys(FieldSys **ppField)
     *ppField = (FieldSys *)malloc(sizeof(FieldSys));
     (*ppField)->pGroup1 = RationPlusObj();
     (*ppField)->pGroup2 = RationMultObj();
+    (*ppField)->pSub = *ppField;
 
 //    (*ppField)->pGroup1 = ModPlusObj();
 //    (*ppField)->pGroup2 = ModMultObj();

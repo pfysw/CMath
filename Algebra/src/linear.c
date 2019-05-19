@@ -149,7 +149,6 @@ VectorEle *VectorMult(
     OperateSys *pPlus = pField->pGroup1;
     void *pT[2];
     int i,j,k;
-    int size;
 
     pVector = NewVector1(p2,p1->nEle+p2->nEle-1);
 
@@ -240,7 +239,7 @@ VectorEle *VectorMod(
         FieldSys *pField,
         VectorEle *p1,
         VectorEle *p2,
-        u8 bQuotient)
+        u8 bQuotient)//0£∫«Û”‡ 1£∫«Û…Ã
 {
     VectorEle *pVector;
     VectorEle *pTemp;

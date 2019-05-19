@@ -9,7 +9,7 @@
 #include "field.h"
 #include "group.h"
 #include "linear.h"
-
+#include "poly.h"
 
 void SetVecEle(
         FieldSys *pField,
@@ -155,7 +155,7 @@ VectorEle *CreatUnkownPoly(FieldSys *pField,VectorEle *pPoly)
     //最高项次数比多项式少1
     p = NewVector(nEle-1);
     p->eType = pPoly->eType+1;
-    p->pSubField = NULL;//lijia  待修改
+    p->pSubField = NULL;
     p->pPoly = NULL;
     for(i=0; i<nEle-1; i++)
     {
@@ -485,7 +485,7 @@ VectorEle *GetNewFieldPoly(FieldSys *pField,VectorEle *pPoly)
 
     for(i=0; i<pPoly->nEle; i++)
     {
-        p->aVecEle[i] = NewVector1(pPoly,pBase->nEle);
+        p->aVecEle[i] = NewVector1(pBase,pBase->nEle);
         pVec =  p->aVecEle[i];
         pVec->aVecEle[0] = pPlus->xOperat(pZero,pPoly->aVecEle[i]);
         for(j=1; j<pBase->nEle; j++)
@@ -497,19 +497,13 @@ VectorEle *GetNewFieldPoly(FieldSys *pField,VectorEle *pPoly)
     return p;
 }
 
-VectorEle *NewPolyVec(FieldSys *pField,int nEle)
+VectorEle *NewPolyVec(FieldSys *pField,int *aCoef, int nEle)
 {
     OperateSys *pPlus = pField->pGroup1;
     VectorEle *p;
     u8 iGen;
     int i;
-    int aCoef[10] = {0};
-    aCoef[0] = 3;
-    aCoef[1] = 1;
-    aCoef[2] = 1;
-    aCoef[3] = 1;
-    aCoef[4] = 1;
-    aCoef[5] = 1;
+
     //如果多项式是x^3+1=0
     //那么向量空间的最大次数就是x^2
     //所以多项式的次数比向量空间的次数大1
@@ -542,13 +536,30 @@ void SetVecField(
         FieldSys *pSubField,
         int nEle)
 {
+    int aCoef[10] = {0};
     VectorEle *pPoly;
     *ppField = (FieldSys *)malloc(sizeof(FieldSys));
-    pPoly = NewPolyVec(pSubField,nEle);
+
+#if 0
+    aCoef[0] = 3;
+    aCoef[1] = 1;
+    aCoef[2] = 1;
+    aCoef[3] = 1;
+    aCoef[4] = 1;
+    aCoef[5] = 1;
+#else
+    aCoef[0] = -4;
+    aCoef[1] = 0;
+    aCoef[2] = 0;
+    aCoef[3] = 0;
+    aCoef[4] = 1;
+    aCoef[5] = 0;
+#endif
+    pPoly = NewPolyVec(pSubField,aCoef,nEle);
 
     (*ppField)->pGroup1 = PolyPlusObj(pSubField,nEle,pPoly);
     (*ppField)->pGroup2 = PolyMultObj(pSubField,nEle,pPoly);
-
+    (*ppField)->pSub = pSubField;
     pSubField->pParent = (*ppField);
 
 }
@@ -582,6 +593,31 @@ FieldSys *SplittingField(FieldSys *pField)
     return pExtend;
 }
 
+FieldSys *ExtendField(FieldSys *pField)
+{
+    FieldSys *pSub = pField->pSub;
+    FieldSys *pExtend;
+    VectorEle *pPoly;
+    VectorEle *pTemp;
+    int aCoef[10] = {1,0,1};
+
+    pExtend = (FieldSys *)malloc(sizeof(FieldSys));
+
+    pTemp = NewPolyVec(pSub,aCoef,2);
+    pPoly = GetNewFieldPoly(pField,pTemp);
+    FreeVector(pTemp);
+    PrintVec(pField,pPoly);
+
+    pExtend->pGroup1 = PolyPlusObj(pField,pPoly->nEle-1,pPoly);
+    pExtend->pGroup2 = PolyMultObj(pField,pPoly->nEle-1,pPoly);
+    pField->pParent = pExtend;
+    loga("Extend %d",pPoly->nEle);
+    IsField(pExtend);
+
+    return pExtend;
+}
+
+
 
 void PolyTest(FieldSys *pField)
 {
@@ -597,13 +633,7 @@ void PolyTest(FieldSys *pField)
     loga("poly");
     IsField(pField);
 
-
-//    int aPara[3][3] =
-//    {
-//        0,-1,0,
-//        1,0,0,
-//        0,0,0
-//    };
+#if 0
     pTest = NewVector1(pBase,pBase->nEle);
     //int aSet1[5] = {-1,1,0} ;
     int aSet2[5] = {59,-6,9,-60,83};
@@ -611,6 +641,7 @@ void PolyTest(FieldSys *pField)
   //  pRslt = VectorMod(pBase->pSubField,pBase->pPoly,pTest,0);
     pRslt = pMult->xInvEle(pTest);
     PrintVal(pField,(VectorEle **)&pRslt,1);
+#endif
 
     pNewPoly = GetNewFieldPoly(pField,pBase->pPoly);
     loga("--");
@@ -627,9 +658,13 @@ void PolyTest(FieldSys *pField)
     PrintVal(pField,(VectorEle **)&pBase->pPoly,1);
     rc = pField->pGroup1->xIsEqual(pBase,pRslt);
     assert(rc);
-    loga("splite");
-    pExtend = SplittingField(pField);
-    pExtend = SplittingField(pExtend);
+    pExtend = ExtendField(pField);
+
+    ExtendFieldTest(pExtend);
+
+//    loga("splite");
+    //pExtend = SplittingField(pField);
+//    pExtend = SplittingField(pExtend);
 //    pExtend = SplittingField(pExtend);
 
 }

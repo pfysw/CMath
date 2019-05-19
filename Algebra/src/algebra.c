@@ -7,7 +7,7 @@
 #include"algebra.h"
 #include"group.h"
 
-#define POLY_EXP 5
+#define POLY_EXP 4
 
 void IsGroup(OperateSys *pOpSys)
 {

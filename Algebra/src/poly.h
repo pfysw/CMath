@@ -13,4 +13,14 @@ void SetVecField(
         FieldSys *pSubField,
         int nEle);
 
+typedef struct MapEle MapEle;
+struct MapEle
+{
+    void (*xSigma)(VectorEle* pSrc);
+    void (*xTau)(VectorEle* pSrc);
+    u8 nSigma;
+    u8 nTau;
+};
+
+void SigmaMap(VectorEle* pSrc);
 #endif /* POLY_H_ */
