@@ -40,6 +40,21 @@ VectorEle *NewVector1(VectorEle *pSrc,int nEle)
     return pVector;
 }
 
+VectorEle* VecCpy(VectorEle* pSrc)
+{
+    VectorEle *p;
+    FieldSys *pField = pSrc->pSubField;
+    OperateSys *pPlus = pField->pGroup1;
+    int i;
+
+    p = NewVector1(pSrc,pSrc->nEle);
+    for(i=0; i<pSrc->nEle; i++)
+    {
+        p->aVecEle[i] = pPlus->xOperat(pPlus->pBaseEle,pSrc->aVecEle[i]);
+    }
+
+    return p;
+}
 
 FieldEle *EliminationUnkowns(
         FieldSys *pField,

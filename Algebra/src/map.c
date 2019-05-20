@@ -13,7 +13,7 @@
 
 void FieldMapping(MapEle* pMap, VectorEle* pVec)
 {
-    int i,j;
+    int i;
     for(i=0;i<pMap->nSigma;i++)
     {
         pMap->xSigma(pVec);
@@ -187,47 +187,70 @@ OperateSys *AutomorphismsObj(void)
     return pGroup;
 }
 
-int ExtendFieldTest(FieldSys *pField)
+
+int isAutomorphisms(FieldSys *pField,OperateSys *pMap)
 {
     int rc = 0;
     int i,j,k;
-    VectorEle* pT[4];
+    VectorEle* pT[3];
+    VectorEle* pV[4];
     OperateSys *pOpSys = pField->pGroup2;
-    OperateSys *pMap = AutomorphismsObj();
     MapEle *pEle;
 
-    pEle = pMap->xGen(pMap,4);
-    for(i=0; i<1; i++)
+    for(i=0; i<8; i++)
     {
+        loga("i %d",i);
         k = FakeRand(i);
+        k = 3;//²âÊÔ
         SetGenPara(pOpSys,k);
+        pEle = pMap->xGen(pMap,i);
+
         pT[0] = pOpSys->xGen(pOpSys,k);
         pT[1] = pOpSys->xGen(pOpSys,k+2);
         pT[2] = pOpSys->xOperat(pT[0],pT[1]);
 
         for(j=0;j<3;j++)
         {
+            pV[j] = VecCpy(pT[j]);
+        }
+
+        for(j=0;j<3;j++)
+        {
             PrintVal(pField,(VectorEle **)pT[j]->aVecEle,pT[j]->nEle);
         }
         for(j=0;j<3;j++)
         {
-//            SigmaMap(pT[j]);
-//            SigmaMap(pT[j]);
-            FieldMapping(pEle,pT[j]);
+            FieldMapping(pEle,pV[j]);
         }
-        pT[3] = pOpSys->xOperat(pT[0],pT[1]);
+        pV[3] = pOpSys->xOperat(pV[0],pV[1]);
 
+        rc = pOpSys->xIsEqual(pV[2],pV[3]);
+        assert(rc);
         for(j=0;j<4;j++)
         {
-            PrintVal(pField,(VectorEle **)pT[j]->aVecEle,pT[j]->nEle);
+            PrintVal(pField,(VectorEle **)pV[j]->aVecEle,pV[j]->nEle);
         }
-        for(j=0;j<4;j++)
+        for(j=0;j<3;j++)
         {
             FreeGroupEle(pOpSys,pT[j]);
         }
-
-
+        for(j=0;j<4;j++)
+        {
+            FreeGroupEle(pOpSys,pV[j]);
+        }
+        free(pEle);
     }
+
+
+
+    return rc;
+}
+int ExtendFieldTest(FieldSys *pField)
+{
+    int rc = 0;
+    OperateSys *pMap = AutomorphismsObj();
+
+    rc = isAutomorphisms(pField,pMap);
     loga("Automorphisms:");
     IsGroup(pMap);
 

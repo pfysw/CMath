@@ -24,6 +24,7 @@ struct VectorEle
     //FieldEle **aVecEle;
 };
 
+VectorEle* VecCpy(VectorEle* pSrc);
 void FreeVector(VectorEle *pVec);
 
 VectorEle *FieldMultVector(
