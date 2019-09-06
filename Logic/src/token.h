@@ -59,5 +59,9 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p);
 void FreeAstTree(AstParse *pParse,TokenInfo **ppAst,TokenInfo **ppTemp);
 void PrintAstAddr(AstParse *pParse,TokenInfo *pAst);
 void PrintSubstAst(AstParse *pParse,TokenInfo *pAst);
+TokenInfo *CopyAstTree(
+        AstParse *pParse,
+        TokenInfo *pSrc,
+        u8 bSubst);
 
 #endif /* TOKEN_H_ */

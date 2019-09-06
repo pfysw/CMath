@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
    AstParse *pParse;
    int end_flag = 0;
    TokenInfo *ppTemp[100];
-   TokenInfo *ppTest[2];
+   TokenInfo *ppTest[10];
    int idx = 0;
 
    setbuf(stdout, NULL);
@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
        pToken->zSymb = yyget_text(scanner);
        pToken->nSymbLen = yyget_leng(scanner);
        pToken->symb = pToken->zSymb[0];
-       printf("tocken %d %s \n",token,pToken->zSymb);
+       //printf("tocken %d %s \n",token,pToken->zSymb);
        PropParse(pLemon, token, pToken,pParse);
        end_flag = 0;
        if( token==TK_SEM )
@@ -76,12 +76,11 @@ int main(int argc, char** argv) {
 
    SubstPropTest(pParse,ppTest);
 
-   FreeAstTree(pParse,&ppTest[0],ppTemp);
    //GenBasicProp(pParse);
    yylex_destroy(scanner);
    PropParseFree(pLemon, free);
 
-   FreeAstTree(pParse,&pParse->pRoot,ppTemp);
+   //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
 

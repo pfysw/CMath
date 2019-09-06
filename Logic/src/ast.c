@@ -212,3 +212,42 @@ void SetImplExpr(
     pA->pLeft = pB;
     pA->pRight = pC;
 }
+
+TokenInfo *CopyAstTree(
+        AstParse *pParse,
+        TokenInfo *pSrc,
+        u8 bSubst)
+{
+    TokenInfo *pDst;
+    pDst = NewNode(pParse);
+    pDst->type = pSrc->type;
+    if( pSrc->type==PROP_SYMB )
+    {
+        if( bSubst && pSrc->bSubst )
+        {
+            if( pSrc->pSubst->type==PROP_SYMB )
+            {
+                pDst->symb = pSrc->pSubst->symb;
+            }
+            else
+            {
+                pDst->type = pSrc->pSubst->type;
+                pDst->pLeft = CopyAstTree(pParse,pSrc->pSubst->pLeft,bSubst);
+                if( pSrc->pSubst->type==PROP_IMPL )
+                    pDst->pRight = CopyAstTree(pParse,pSrc->pSubst->pRight,bSubst);
+            }
+        }
+        else
+        {
+            pDst->symb = pSrc->symb;
+        }
+    }
+    else
+    {
+        pDst->pLeft = CopyAstTree(pParse,pSrc->pLeft,bSubst);
+        if( pSrc->type==PROP_IMPL )
+            pDst->pRight = CopyAstTree(pParse,pSrc->pRight,bSubst);
+    }
+
+    return pDst;
+}

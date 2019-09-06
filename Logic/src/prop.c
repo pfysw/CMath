@@ -10,6 +10,22 @@
 #include "token.h"
 #include <assert.h>
 
+typedef struct PermData
+{
+    u8 nAll;
+    u8 iNofree;
+    u8 nFree;
+    u8 pos;
+    u8 aMap[10];
+}PermData;
+
+typedef struct vector
+{
+    TokenInfo **data;
+    int n;
+    int size;
+}Vector;
+
 u8 isEqualNode(TokenInfo *pA,TokenInfo *pB)
 {
     u8 rc = 0;
@@ -65,14 +81,103 @@ int SetSameNode(
     return n;
 }
 
-typedef struct PermData
+int GetDiffNode(
+        AstParse *pParse,
+        TokenInfo **ppAst,
+        TokenInfo **ppTemp,
+        u8 isSubst)
 {
-    u8 nAll;
-    u8 iNofree;
-    u8 nFree;
-    u8 pos;
-    u8 aMap[10];
-}PermData;
+    static int n = 0;
+    static int cnt = 0;
+    int i;
+    int rc;
+    TokenInfo *p;
+
+    if( !cnt )
+    {
+        n = 0;
+    }
+    cnt++;
+    if(  (*ppAst)->type==PROP_SYMB )
+    {
+
+        if( (*ppAst)->bSubst && isSubst &&
+                (*ppAst)->pSubst->type!=PROP_SYMB )
+        {
+            GetDiffNode(pParse,&((*ppAst)->pSubst),ppTemp,isSubst);
+        }
+        else
+        {
+            rc = 0;
+            if( (*ppAst)->bSubst && isSubst )
+            {
+                p = (*ppAst)->pSubst;
+            }
+            else
+            {
+                p = (*ppAst);
+            }
+            for( i=0;i<n;i++ )
+            {
+                if( p == ppTemp[i] )
+                {
+                    rc = 1;
+                    break;
+                }
+            }
+            if( !rc )
+            {
+                ppTemp[n++] = p;
+            }
+        }
+
+    }
+    else
+    {
+        GetDiffNode(pParse,&((*ppAst)->pLeft),ppTemp,isSubst);
+        if( (*ppAst)->type==PROP_IMPL )
+            GetDiffNode(pParse,&((*ppAst)->pRight),ppTemp,isSubst);
+    }
+    cnt--;
+    return n;
+}
+
+int GetAllNode(
+        AstParse *pParse,
+        TokenInfo **ppAst,
+        TokenInfo **ppTemp)
+{
+    static int n = 0;
+    static int cnt = 0;
+
+    if( !cnt )
+    {
+        n = 0;
+    }
+    cnt++;
+    if(  (*ppAst)->type==PROP_SYMB )
+    {
+
+        if( (*ppAst)->bSubst && (*ppAst)->pSubst->type!=PROP_SYMB )
+        {
+            GetAllNode(pParse,&((*ppAst)->pSubst),ppTemp);
+        }
+        else
+        {
+            n++;
+        }
+
+    }
+    else
+    {
+        GetAllNode(pParse,&((*ppAst)->pLeft),ppTemp);
+        if( (*ppAst)->type==PROP_IMPL )
+            GetAllNode(pParse,&((*ppAst)->pRight),ppTemp);
+    }
+    cnt--;
+    return n;
+}
+
 
 
 void SubstFreeTerm(
@@ -329,24 +434,154 @@ int  SubstProp(
     return rc;
 }
 
+void InsertVector(Vector *pV,TokenInfo *pData)
+{
+    if( pV->n<pV->size )
+    {
+        pV->data[pV->n++] = pData;
+    }
+    else
+    {
+        assert( pV->size<1000000 );
+        pV->size = pV->size*2;
+        pV->data = realloc(pV->data,pV->size);
+    }
+}
 
+void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
+{
+    assert(pAst!=NULL);
+
+    if( pAst->type==PROP_SYMB )
+    {
+        pAst->bSubst = 0;
+    }
+    else if( pAst->type==PROP_NEG )
+    {
+        pAst->bSubst = 0;
+        ClearSubstFlag(pParse,pAst->pLeft);
+    }
+    else
+    {
+        assert(pAst->type==PROP_IMPL);
+        pAst->bSubst = 0;
+        ClearSubstFlag(pParse,pAst->pLeft);
+        ClearSubstFlag(pParse,pAst->pRight);
+    }
+}
+
+#define DEBUG 1
 void  SubstPropTest(
         AstParse *pParse,
         TokenInfo **ppTest)
 {
-    int n;
+    int i,j,k;
+    int n,m;
     int rc;
-    TokenInfo *ppTemp[10];
+    TokenInfo *ppTemp[100];
+    Vector theoremset;
+    TokenInfo *apCopy[5];
 
-    PrintAst(pParse,ppTest[0]);
-    PrintAst(pParse,ppTest[1]);
-    n = SetSameNode(pParse,&ppTest[0],ppTemp);
-    log_a("n %d",n);
-    n = SetSameNode(pParse,&ppTest[1],ppTemp);
-    log_a("n %d",n);
-    rc = SubstProp(pParse,ppTest[0]->pLeft,ppTest[1]);
-    log_a("rc %d",rc);
+    memset(&theoremset,0,sizeof(Vector));
+    theoremset.size = 100;
+    theoremset.data = malloc(theoremset.size*sizeof(TokenInfo **));
 
-    PrintSubstAst(pParse,ppTest[0]);
-    PrintSubstAst(pParse,ppTest[1]);
+    for(i=0; i<3; i++)
+    {
+        PrintAst(pParse,ppTest[i]);
+        n = SetSameNode(pParse,&ppTest[i],ppTemp);
+        log_a("n %d",n);
+        InsertVector(&theoremset,ppTest[i]);
+        PrintAst(pParse,theoremset.data[i]);
+    }
+    log_a("***********");
+    for(i=0; i<10; i++)
+    {
+        for(j=0; j<10&&j<theoremset.n; j++)
+        {
+            n = 0;
+            if(i==j)
+            {
+                apCopy[0] = CopyAstTree(pParse,theoremset.data[i],0);
+                SetSameNode(pParse,&apCopy[0],ppTemp);
+                rc = SubstProp(pParse,theoremset.data[i]->pLeft,apCopy[0]);
+            }
+            else
+            {
+                rc = SubstProp(pParse,
+                        theoremset.data[i]->pLeft,theoremset.data[j]);
+            }
+#if DEBUG
+            log_a("rc %d i %d j %d",rc ,i,j);
+#endif
+            if( rc )
+            {
+                n = GetDiffNode(pParse,&theoremset.data[i]->pRight,ppTemp,1);
+#if DEBUG&&0
+                log_a("n %d",n);
+#endif
+                if( n>3 ) goto end_insert;
+                m = GetAllNode(pParse,&theoremset.data[i]->pRight,ppTemp);
+#if DEBUG&&0
+                log_a("m %d",m);
+#endif
+                if( m>10 ) goto end_insert;
+
+                for(k=0; k<n; k++)
+                {
+                    //log_a("sym %c",ppTemp[k]->symb);
+                    ppTemp[k]->symb = 'A'+k;
+                }
+
+                apCopy[1] = CopyAstTree(pParse,theoremset.data[i]->pRight,1);
+                SetSameNode(pParse,&apCopy[1],ppTemp);
+                InsertVector(&theoremset,apCopy[1]);
+
+#if DEBUG
+                n = GetDiffNode(pParse,&theoremset.data[i],ppTemp,0);
+                for(k=0; k<n; k++)
+                {
+                    //log_a("sym %c",ppTemp[k]->symb);
+                    ppTemp[k]->symb = 'A'+k;
+                }
+                log_a("i: %d",i);
+                PrintAst(pParse,theoremset.data[i]);
+                log_a("j: %d",j);
+                PrintAst(pParse,theoremset.data[j]);
+                log_a("----");
+#endif
+                log_a("num %d",theoremset.n);
+                PrintSubstAst(pParse,apCopy[1]);
+            }
+        end_insert:
+            ClearSubstFlag(pParse,theoremset.data[i]);
+            ClearSubstFlag(pParse,theoremset.data[j]);
+            if( i==j )
+            {
+                FreeAstTree(pParse,&apCopy[0],ppTemp);
+            }
+        }
+    }
+
+
+//    rc = SubstProp(pParse,ppTest[0]->pLeft,ppTest[1]);
+//    log_a("rc %d",rc);
+//
+//
+//    pCopy = CopyAstTree(pParse,ppTest[0],1);
+//    PrintSubstAst(pParse,pCopy);
+
+//    PrintSubstAst(pParse,ppTest[0]);
+//    PrintSubstAst(pParse,ppTest[1]);
+//    ClearSubstFlag(pParse,ppTest[0]);
+//    ClearSubstFlag(pParse,ppTest[1]);
+//    PrintSubstAst(pParse,ppTest[0]);
+//    PrintSubstAst(pParse,ppTest[1]);
+
+
+    for(i=0; i<theoremset.n; i++)
+    {
+        FreeAstTree(pParse,&theoremset.data[i],ppTemp);
+    }
+
 }
