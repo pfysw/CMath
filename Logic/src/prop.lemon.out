@@ -1,0 +1,102 @@
+State 0:
+          program ::= * expr TK_SEM
+          expr ::= * expr TK_IMPL expr
+          expr ::= * TK_LPAREN expr TK_RPAREN
+          expr ::= * TK_NEG expr
+          expr ::= * TK_SYM
+
+                        TK_NEG shift  1
+                     TK_LPAREN shift  2
+                        TK_SYM shift  7
+                       program accept
+                          expr shift  5
+
+State 1:
+          expr ::= * expr TK_IMPL expr
+          expr ::= * TK_LPAREN expr TK_RPAREN
+          expr ::= * TK_NEG expr
+          expr ::= TK_NEG * expr
+          expr ::= * TK_SYM
+
+                        TK_NEG shift  1
+                     TK_LPAREN shift  2
+                        TK_SYM shift  7
+                          expr shift  8
+
+State 2:
+          expr ::= * expr TK_IMPL expr
+          expr ::= * TK_LPAREN expr TK_RPAREN
+          expr ::= TK_LPAREN * expr TK_RPAREN
+          expr ::= * TK_NEG expr
+          expr ::= * TK_SYM
+
+                        TK_NEG shift  1
+                     TK_LPAREN shift  2
+                        TK_SYM shift  7
+                          expr shift  4
+
+State 3:
+          expr ::= * expr TK_IMPL expr
+          expr ::= expr TK_IMPL * expr
+          expr ::= * TK_LPAREN expr TK_RPAREN
+          expr ::= * TK_NEG expr
+          expr ::= * TK_SYM
+
+                        TK_NEG shift  1
+                     TK_LPAREN shift  2
+                        TK_SYM shift  7
+                          expr shift  10
+
+State 4:
+          expr ::= expr * TK_IMPL expr
+          expr ::= TK_LPAREN expr * TK_RPAREN
+
+                       TK_IMPL shift  3
+                     TK_RPAREN shift  9
+
+State 5:
+          program ::= expr * TK_SEM
+          expr ::= expr * TK_IMPL expr
+
+                       TK_IMPL shift  3
+                        TK_SEM shift  6
+
+State 6:
+      (0) program ::= expr TK_SEM *
+
+                             $ reduce 0
+
+State 7:
+      (4) expr ::= TK_SYM *
+
+                     {default} reduce 4
+
+State 8:
+          expr ::= expr * TK_IMPL expr
+      (3) expr ::= TK_NEG expr *
+
+                     {default} reduce 3
+
+State 9:
+      (2) expr ::= TK_LPAREN expr TK_RPAREN *
+
+                     {default} reduce 2
+
+State 10:
+          expr ::= expr * TK_IMPL expr
+      (1) expr ::= expr TK_IMPL expr *
+
+                     {default} reduce 1
+
+----------------------------------------------------
+Symbols:
+    0: $:
+    1: TK_IMPL
+    2: TK_NEG
+    3: TK_SEM
+    4: TK_LPAREN
+    5: TK_RPAREN
+    6: TK_SYM
+    7: error:
+    8: program: TK_NEG TK_LPAREN TK_SYM
+    9: expr: TK_NEG TK_LPAREN TK_SYM
