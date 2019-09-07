@@ -50,7 +50,8 @@ void PrintSubstAst(AstParse *pParse,TokenInfo *pAst)
     {
         if( pAst->bSubst )
         {
-            if( pAst->pSubst->type==PROP_SYMB )
+            if( pAst->pSubst->type==PROP_SYMB &&
+                    !pAst->pSubst->bSubst )
             {
                 log_c("%c",pAst->pSubst->symb);
             }
@@ -219,18 +220,28 @@ TokenInfo *CopyAstTree(
         u8 bSubst)
 {
     TokenInfo *pDst;
+    TokenInfo *pTemp;
     pDst = NewNode(pParse);
     pDst->type = pSrc->type;
     if( pSrc->type==PROP_SYMB )
     {
         if( bSubst && pSrc->bSubst )
         {
-            if( pSrc->pSubst->type==PROP_SYMB )
+            pTemp = pSrc;
+            if( pSrc->pSubst->type==PROP_SYMB  &&
+                    !pSrc->pSubst->bSubst )
             {
                 pDst->symb = pSrc->pSubst->symb;
             }
             else
             {
+                //如果不是PROP_SYMB，那么pSrc->pSubst->bSubst不可能是1
+                if( pSrc->pSubst->bSubst )
+                {
+                    assert( pSrc->pSubst->type==PROP_SYMB );
+                    pSrc = pSrc->pSubst;
+                    assert( pSrc->pSubst->type!=PROP_SYMB );
+                }
                 pDst->type = pSrc->pSubst->type;
                 pDst->pLeft = CopyAstTree(pParse,pSrc->pSubst->pLeft,bSubst);
                 if( pSrc->pSubst->type==PROP_IMPL )

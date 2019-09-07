@@ -33,7 +33,8 @@ struct TokenInfo{
     TokenInfo *pLeft;
     TokenInfo *pRight;
     u8 type;
-    u8 bSubst;//todo 标志位什么时候清除
+    u8 bSubst;
+    u8 isRightTheorem;
     char symb;
 };
 
