@@ -36,6 +36,7 @@ struct TokenInfo{
     u8 bSubst;
     u8 isRightTheorem;
     char symb;
+    char copy;
 };
 
 typedef struct AstParse AstParse;

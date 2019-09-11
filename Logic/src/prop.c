@@ -98,6 +98,7 @@ int GetDiffNode(
         n = 0;
     }
     cnt++;
+    assert( cnt<10 );
     if(  (*ppAst)->type==PROP_SYMB )
     {
 
@@ -368,12 +369,12 @@ int  SubstProp(
 {
     int rc = 0;
 
-    if( pA->bSubst )
+    while( pA->bSubst )
     //if( pA->bSubst && pA->pSubst->type!=PROP_SYMB )
     {
         pA = pA->pSubst;
     }
-    if( pB->bSubst )
+    while( pB->bSubst )
     //if( pB->bSubst && pB->pSubst->type!=PROP_SYMB )
     {
         pB = pB->pSubst;
@@ -444,6 +445,7 @@ int  SubstProp(
 
 void InsertVector(Vector *pV,TokenInfo *pData)
 {
+    TokenInfo **temp;
     if( pV->n<pV->size )
     {
         pV->data[pV->n++] = pData;
@@ -451,8 +453,16 @@ void InsertVector(Vector *pV,TokenInfo *pData)
     else
     {
         assert( pV->size<1000000 );
+
+//        temp = malloc(pV->size*2);
+//        memset(temp,0,sizeof(TokenInfo **)*pV->size*2);
+//        memcpy(temp,pV->data,sizeof(TokenInfo **)*pV->size);
+//        free(pV->data);
+//        pV->data = temp;
+//        pV->size = pV->size*2;
         pV->size = pV->size*2;
-        pV->data = realloc(pV->data,pV->size);
+        pV->data = realloc(pV->data,sizeof(TokenInfo **)*pV->size);
+        pV->data[pV->n++] = pData;
     }
 }
 
@@ -478,9 +488,28 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
     }
 }
 
-#define DEBUG 1
+#define DEBUG 0
 
 Vector theoremset;
+
+
+int GetAddrTest(void)
+{
+    int rc = 0;
+    int test;
+    test = theoremset.data[51];
+    if( theoremset.n>90 )
+    {
+        if( (test>10000)||(test<-10000))
+        {
+            rc = 1;
+        }
+    }
+    else
+        rc = 1;
+    return rc;
+}
+
 void  SubstPropTest(
         AstParse *pParse,
         TokenInfo **ppTest)
@@ -504,14 +533,15 @@ void  SubstPropTest(
         PrintAst(pParse,theoremset.data[i]);
     }
     log_a("***********");
-    for(i=0; i<10; i++)
+    for(i=0; i<20; i++)
     {
         if( theoremset.data[i]->isRightTheorem ) continue;
 
-        for(j=0; j<10&&j<theoremset.n; j++)
+        for(j=0; j<20&&j<theoremset.n; j++)
         {
             if( i==5 && j>0 ) break;
-            if( i==6&&j==19 )
+            //if( theoremset.n>51 && theoremset.data[51]<100 )
+            if( i==13 && j==19 )
             {
                 log_a("tt");
             }
@@ -528,7 +558,7 @@ void  SubstPropTest(
                         theoremset.data[i]->pLeft,theoremset.data[j]);
             }
 #if DEBUG
-            log_a("rc %d i %d j %d",rc ,i,j);
+           // log_a("rc %d i %d j %d",rc ,i,j);
 #endif
             if( rc )
             {
@@ -546,18 +576,20 @@ void  SubstPropTest(
                 for(k=0; k<n; k++)
                 {
                     //log_a("sym %c",ppTemp[k]->symb);
-                    ppTemp[k]->symb = 'A'+k;
+                    //ppTemp[k]->symb = 'A'+k;
+                    ppTemp[k]->copy = 'A'+k;
                 }
 
                 apCopy[1] = CopyAstTree(pParse,theoremset.data[i]->pRight,1);
+
                 SetSameNode(pParse,&apCopy[1],ppTemp);
                 if( 0==i )
                 {
                     apCopy[1]->isRightTheorem = 1;
                 }
-
+                assert( GetAddrTest() );
                 InsertVector(&theoremset,apCopy[1]);
-
+                assert( GetAddrTest() );
 #if DEBUG
                 n = GetDiffNode(pParse,&theoremset.data[i],ppTemp,0);
                 for(k=0; k<n; k++)
@@ -606,3 +638,5 @@ void  SubstPropTest(
     }
 
 }
+
+

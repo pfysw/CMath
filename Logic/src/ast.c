@@ -221,7 +221,10 @@ TokenInfo *CopyAstTree(
 {
     TokenInfo *pDst;
     TokenInfo *pTemp;
+    u32 testn;
+
     pDst = NewNode(pParse);
+
     pDst->type = pSrc->type;
     if( pSrc->type==PROP_SYMB )
     {
@@ -231,26 +234,42 @@ TokenInfo *CopyAstTree(
             if( pSrc->pSubst->type==PROP_SYMB  &&
                     !pSrc->pSubst->bSubst )
             {
-                pDst->symb = pSrc->pSubst->symb;
+                pDst->symb = pSrc->pSubst->copy;
+               // pDst->symb = pSrc->pSubst->symb;
             }
             else
             {
                 //如果不是PROP_SYMB，那么pSrc->pSubst->bSubst不可能是1
-                if( pSrc->pSubst->bSubst )
+                while( pSrc->pSubst->bSubst )
                 {
                     assert( pSrc->pSubst->type==PROP_SYMB );
                     pSrc = pSrc->pSubst;
-                    assert( pSrc->pSubst->type!=PROP_SYMB );
                 }
-                pDst->type = pSrc->pSubst->type;
-                pDst->pLeft = CopyAstTree(pParse,pSrc->pSubst->pLeft,bSubst);
-                if( pSrc->pSubst->type==PROP_IMPL )
-                    pDst->pRight = CopyAstTree(pParse,pSrc->pSubst->pRight,bSubst);
+                if( pSrc->pSubst->type==PROP_SYMB )
+                {
+                    pDst->symb = pSrc->pSubst->copy;
+                   //pDst->symb = pSrc->pSubst->symb;
+                }
+                else
+                {
+                    pDst->type = pSrc->pSubst->type;
+                    pDst->pLeft = CopyAstTree(pParse,
+                            pSrc->pSubst->pLeft,bSubst);
+                    if( pSrc->pSubst->type==PROP_IMPL )
+                    {
+
+                        pDst->pRight = CopyAstTree(pParse,
+                                pSrc->pSubst->pRight,bSubst);
+                    }
+                }
             }
         }
         else
         {
-            pDst->symb = pSrc->symb;
+            if( bSubst )
+                pDst->symb = pSrc->copy;
+            else
+                pDst->symb = pSrc->symb;
         }
     }
     else
