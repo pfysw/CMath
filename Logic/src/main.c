@@ -74,9 +74,10 @@ int main(int argc, char** argv) {
    }
    printf("end %d %s\n",token,yyget_text(scanner));
 
+  // GenBasicProp(pParse);
    SubstPropTest(pParse,ppTest);
 
-   //GenBasicProp(pParse);
+
    yylex_destroy(scanner);
    PropParseFree(pLemon, free);
 
