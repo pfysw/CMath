@@ -23,7 +23,6 @@ int main(int argc, char** argv) {
    TokenInfo *pToken;
    void* pLemon = PropParseAlloc(malloc);
    AstParse *pParse;
-   int end_flag = 0;
    TokenInfo *ppTemp[100];
    TokenInfo *ppTest[10];
    int idx = 0;
@@ -52,14 +51,14 @@ int main(int argc, char** argv) {
        pToken->symb = pToken->zSymb[0];
        //printf("tocken %d %s \n",token,pToken->zSymb);
        PropParse(pLemon, token, pToken,pParse);
-       end_flag = 0;
+
        if( token==TK_SEM )
        {
-           end_flag = 1;
            PropParse(pLemon, 0, 0,pParse);
            log_a("----------");
            PrintAst(pParse,pParse->pRoot);
            ppTest[idx++] = pParse->pRoot;
+           if( idx>4 ) break;
        }
 	   token = yylex(scanner);
 	   if( token )
@@ -67,10 +66,6 @@ int main(int argc, char** argv) {
 	       pToken = NewNode(pParse);
 	       continue;
 	   }
-   }
-   if( !end_flag )
-   {
-       PropParse(pLemon, 0, 0,pParse);
    }
    printf("end %d %s\n",token,yyget_text(scanner));
 
