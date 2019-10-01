@@ -669,14 +669,129 @@ void  SubstPropTest1(
 #endif
 
 
-int  MpRule(
+int InsertMpProp(
         AstParse *pParse,
-        TokenInfo *ppTemp[100],
-        int i,
-        int j)
+        TokenInfo **ppTemp,
+        TokenInfo **apCopy,
+        int i,int j)
 {
     int k;
     int n,m;
+
+
+    m = GetAllNode(pParse,&theoremset.data[j]->pRight,ppTemp);
+#if DEBUG&&0
+    log_a("m %d",m);
+#endif
+    if( m>10 ) return 0;
+
+    n = GetDiffNode(pParse,&theoremset.data[j]->pRight,ppTemp,1);
+#if DEBUG&&0
+    log_a("n %d",n);
+#endif
+    if( n>NUM_NOT_SAME ) return 0;
+
+
+    for(k=0; k<n; k++)
+    {
+        //log_a("sym %c",ppTemp[k]->symb);
+        //ppTemp[k]->symb = 'A'+k;
+        ppTemp[k]->copy = 'A'+k;
+    }
+
+    apCopy[1] = CopyAstTree(pParse,theoremset.data[j]->pRight,1);
+
+    SetSameNode(pParse,&apCopy[1],ppTemp);
+
+    if( 0==j )
+    {
+        apCopy[1]->isRightTheorem = 1;
+    }
+    else if( 0==i )
+    {
+        if(j==1)
+            apCopy[1]->isRightTheorem = 2;
+        else if(4==j)
+        {
+            apCopy[1]->isRightTheorem = 1;
+        }
+    }
+
+    InsertVector(&theoremset,apCopy[1]);
+
+    n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
+    for(k=0; k<n; k++)
+    {
+        //log_a("sym %c",ppTemp[k]->symb);
+        ppTemp[k]->symb = 'A'+k;
+    }
+
+    return 1;
+}
+
+int InsertHSProp(
+        AstParse *pParse,
+        TokenInfo **ppTemp,
+        TokenInfo **apCopy,
+        int i,int j)
+{
+    int k;
+    int n, m;
+    int rc = 1;
+
+    apCopy[2] = NewNode(pParse);
+    apCopy[2]->type = PROP_IMPL;
+    apCopy[2]->pRight = theoremset.data[j]->pRight;
+    apCopy[2]->pLeft = theoremset.data[i]->pLeft;
+
+    m = GetAllNode(pParse,&apCopy[2],ppTemp);
+    if( m>10 )
+    {
+        rc = 0;
+        goto free_node;
+    }
+
+    n = GetDiffNode(pParse,&apCopy[2],ppTemp,1);
+    if( n>NUM_NOT_SAME )
+    {
+        rc = 0;
+        goto free_node;
+    }
+
+    for(k=0; k<n; k++)
+    {
+        ppTemp[k]->copy = 'A'+k;
+    }
+
+
+    apCopy[1] = CopyAstTree(pParse,apCopy[2],1);
+
+    SetSameNode(pParse,&apCopy[1],ppTemp);
+    InsertVector(&theoremset,apCopy[1]);
+
+    n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
+    for(k=0; k<n; k++)
+    {
+        ppTemp[k]->symb = 'A'+k;
+    }
+    n = GetDiffNode(pParse,&theoremset.data[i],ppTemp,0);
+    for(k=0; k<n; k++)
+    {
+        ppTemp[k]->symb = 'A'+k;
+    }
+free_node:
+    FreeAstNode(pParse,apCopy[2]);
+    return rc;
+}
+
+int  MpRule(
+        AstParse *pParse,
+        TokenInfo **ppTemp,
+        int i,
+        int j,
+        int hs)
+{
+    int n;
     int rc = 0;
 
     TokenInfo *apCopy[5];
@@ -694,69 +809,64 @@ int  MpRule(
     n = 0;
     if(i==j)
     {
+
+
         apCopy[0] = CopyAstTree(pParse,theoremset.data[i],0);
         SetSameNode(pParse,&apCopy[0],ppTemp);
-        rc = SubstProp(pParse,theoremset.data[j]->pLeft,apCopy[0]);
+
+        if( hs )
+        {
+            if( apCopy[0]->type!=PROP_IMPL )
+            {
+                goto end_insert;
+            }
+            rc = SubstProp(pParse,theoremset.data[j]->pLeft,apCopy[0]->pRight);
+        }
+        else
+        {
+            rc = SubstProp(pParse,theoremset.data[j]->pLeft,apCopy[0]);
+        }
+
     }
     else
     {
        // log_a("i %d",i);
       //  PrintAst(pParse,theoremset.data[i]);
-        rc = SubstProp(pParse,
-                theoremset.data[j]->pLeft,theoremset.data[i]);
+        if( hs )
+        {
+            if( theoremset.data[i]->type!=PROP_IMPL ) goto end_insert;
+            rc = SubstProp(pParse,
+                            theoremset.data[j]->pLeft,theoremset.data[i]->pRight);
+        }
+        else
+        {
+            rc = SubstProp(pParse,
+                    theoremset.data[j]->pLeft,theoremset.data[i]);
+        }
     }
 #if DEBUG
    // log_a("rc %d i %d j %d",rc ,i,j);
 #endif
     if( rc )
     {
-        m = GetAllNode(pParse,&theoremset.data[j]->pRight,ppTemp);
-#if DEBUG&&0
-        log_a("m %d",m);
-#endif
-        if( m>10 ) goto end_insert;
 
-        n = GetDiffNode(pParse,&theoremset.data[j]->pRight,ppTemp,1);
-#if DEBUG&&0
-        log_a("n %d",n);
-#endif
-        if( n>NUM_NOT_SAME ) goto end_insert;
-
-
-        for(k=0; k<n; k++)
+        if( hs )
         {
-            //log_a("sym %c",ppTemp[k]->symb);
-            //ppTemp[k]->symb = 'A'+k;
-            ppTemp[k]->copy = 'A'+k;
-        }
-
-        apCopy[1] = CopyAstTree(pParse,theoremset.data[j]->pRight,1);
-
-        SetSameNode(pParse,&apCopy[1],ppTemp);
-
-        if( 0==j )
-        {
-            apCopy[1]->isRightTheorem = 1;
-        }
-        else if( 0==i )
-        {
-            if(j==1)
-                apCopy[1]->isRightTheorem = 2;
-            else if(4==j)
+            if( !InsertHSProp(pParse,ppTemp,apCopy,i,j) )
             {
-                apCopy[1]->isRightTheorem = 1;
+                goto end_insert;
+            }
+        }
+        else
+        {
+            if( !InsertMpProp(pParse,ppTemp,apCopy,i,j) )
+            {
+                goto end_insert;
             }
         }
 
-        InsertVector(&theoremset,apCopy[1]);
-
 #if DEBUG
-        n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
-        for(k=0; k<n; k++)
-        {
-            //log_a("sym %c",ppTemp[k]->symb);
-            ppTemp[k]->symb = 'A'+k;
-        }
+
         //PrintSubstAst(pParse,theoremset.data[i]);
         log_a("i: %d",i);
         PrintAst(pParse,theoremset.data[i]);
@@ -812,14 +922,29 @@ void  SubstPropTest(
         //for(j=aCnt[i]; (j<INDEX_J)&&j<theoremset.n; j++)
         for(j=aCnt[i]; (j<3)&&j<theoremset.n; j++)
         {
-            rc = MpRule(pParse,ppTemp,i,j);
+            rc = MpRule(pParse,ppTemp,i,j,0);
             if( rc )
             {
                 nNow = theoremset.n-1;
                 for(k=0;k<3;k++)
                 {
-                    MpRule(pParse,ppTemp,k,nNow);
+                    int r;
+                    //公理做前件
+                    r = MpRule(pParse,ppTemp,k,nNow,0);
+                    if( r )
+                    {
+                        nNow = theoremset.n-1;
+
+                        for(int k=0;k<3;k++)
+                        {
+                            //HS
+                            MpRule(pParse,ppTemp,nNow,k,1);
+                            MpRule(pParse,ppTemp,k,nNow,1);
+                        }
+                    }
+
                 }
+
             }
         }
         aCnt[i] = j;
@@ -830,7 +955,7 @@ void  SubstPropTest(
         }
     }
 
-
+testdebug:
     SetSameNode(pParse,&ppTest[3],ppTemp);
     SetSameNode(pParse,&ppTest[4],ppTemp);
     rc = SubstProp(pParse,ppTest[3]->pLeft,ppTest[4]);
