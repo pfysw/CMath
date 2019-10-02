@@ -34,7 +34,8 @@ struct TokenInfo{
     TokenInfo *pRight;
     u8 type;
     u8 bSubst;
-    u8 isRightTheorem;//1:右边是定理  2：(A-B)->(A->A)的右边，第一次先不置1
+    u8 isRightTheorem;//1:右边是定理
+    u8 iRight;
     char symb;
     char copy;
 };

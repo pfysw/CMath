@@ -34,18 +34,28 @@ typedef struct RefTherom
 
 RefTherom refset;
 
-u8 aRefTable[100] =
+typedef struct RefTable
 {
-   0,1,2,
-   89,//(~~A->(B->A))
-   5,//(A->A)
-};
+    int refprop;
+    int reftime;
+}RefTable;
 
-u8 aRefTime[100] =
+RefTable aRefTable[100] =
 {
-   0,1,2,
-   89,
+    {0,0},
+    {1,1},
+    {2,2},
+    {22,22},
+    //{52,52},//  (A->B)->((C->A)->(C->B)))
+    {39,39},  //(((A->B)->(C->A))->((A->B)->(C->B)))
+    {161,161},//(~~A->(B->A))
+    {166,166},//  ~~A->A
+    {271,271},// (A->(~~B->B))
+    {451,451},  //((A->B)->(~~A->B))
+    {434,500}  //(A->(B->~~B))    9
+    //((A->B)->(A->~~B))
 };
+#define REF_NUM    10
 
 u8 isEqualNode(TokenInfo *pA,TokenInfo *pB)
 {
@@ -472,6 +482,11 @@ int  SubstProp(
 void InsertVector(Vector *pV,TokenInfo *pData)
 {
     TokenInfo **temp;
+
+    if( pV->n==663 )
+    {
+        log_a("ss");
+    }
     if( pV->n<pV->size )
     {
         pV->data[pV->n++] = pData;
@@ -480,12 +495,6 @@ void InsertVector(Vector *pV,TokenInfo *pData)
     {
         assert( pV->size<1000000 );
 
-//        temp = malloc(pV->size*2);
-//        memset(temp,0,sizeof(TokenInfo **)*pV->size*2);
-//        memcpy(temp,pV->data,sizeof(TokenInfo **)*pV->size);
-//        free(pV->data);
-//        pV->data = temp;
-//        pV->size = pV->size*2;
         pV->size = pV->size*2;
         pV->data = realloc(pV->data,sizeof(TokenInfo **)*pV->size);
         pV->data[pV->n++] = pData;
@@ -515,10 +524,11 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
 }
 
 #define DEBUG 1
-#define INDEX_I   115
-#define INDEX_J   55
+#define INDEX_I   75
+#define INDEX_J   15
 #define NUM_NOT_SAME   4
 #define LOOP_N         5
+
 
 Vector theoremset;
 u8 aCnt[1000] = {0};
@@ -690,6 +700,85 @@ void  SubstPropTest1(
 #endif
 
 
+void SetRepeatFlag(int i,int j,int hs,TokenInfo *pCopy)
+{
+    if( hs )
+    {
+        if( 2==theoremset.data[j]->isRightTheorem )
+        {
+            pCopy->isRightTheorem = 2;
+        }
+    }
+    else
+    {
+        if( 0==j )
+        {
+            pCopy->isRightTheorem = 1;
+            pCopy->iRight = i;
+        }
+        else if( 0==i&&11==j )
+        {
+            //(A->(B->A))    0
+            //((A->B)->(A->(C->B)))  11
+            //(A->(B->(C->A)))
+            pCopy->isRightTheorem = 2;
+        }
+        //((A->(B->C))->((A->B)->(A->C)))
+        else if( 1==j )
+        {
+            int iRight;
+            assert( theoremset.data[i]->type==PROP_IMPL );
+            if( theoremset.data[i]->isRightTheorem )
+            {
+                iRight = theoremset.data[i]->iRight;
+                if( theoremset.data[iRight]->isRightTheorem )
+                {
+                    pCopy->isRightTheorem = 1;
+                }
+            }
+        }
+    }
+}
+
+int ProRepeaProp(int i,int j,int hs)
+{
+    int rc = 0;
+
+    if( hs )
+    {
+        //A->A
+        if( 5==i || 5==j  )
+        {
+            return 1;
+        }
+    }
+    else
+    {
+        if( theoremset.data[j]->isRightTheorem )
+        {
+            return 1;
+        }
+        else if( theoremset.n>5 )
+        {
+            if( j==5||j==4 )
+            {
+                return 1;
+            }
+            //A->A   (~A->~B)->(B->A)
+            if( i==5 && j==2 )
+            {
+                return 1;
+            }
+        }
+        else if( 5==theoremset.n )
+        {
+            theoremset.data[4]->isRightTheorem = 1;
+        }
+    }
+
+    return rc;
+}
+
 int InsertMpProp(
         AstParse *pParse,
         TokenInfo **ppTemp,
@@ -724,20 +813,12 @@ int InsertMpProp(
 
     SetSameNode(pParse,&apCopy[1],ppTemp);
 
-    if( 0==j )
-    {
-        apCopy[1]->isRightTheorem = 1;
-    }
-    else if( 0==i )
-    {
-        if(j==1)
-            apCopy[1]->isRightTheorem = 2;
-        else if(4==j)
-        {
-            apCopy[1]->isRightTheorem = 1;
-        }
-    }
+    SetRepeatFlag(i,j,0,apCopy[1]);
 
+    if( theoremset.n==22 )
+    {
+        log_a("s");
+    }
     InsertVector(&theoremset,apCopy[1]);
 
     n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
@@ -799,6 +880,7 @@ int InsertHSProp(
     {
         ppTemp[k]->symb = 'A'+k;
     }
+    SetRepeatFlag(i,j,1,apCopy[1]);
 free_node:
     FreeAstNode(pParse,apCopy[2]);
     return rc;
@@ -816,12 +898,16 @@ int  MpRule(
 
     TokenInfo *apCopy[5];
 
-    if( 1==theoremset.data[j]->isRightTheorem )
-    {
-        return 0;
-    }
-
-    if( theoremset.data[j]->isRightTheorem && i )
+//    if( 1==theoremset.data[j]->isRightTheorem )
+//    {
+//        return 0;
+//    }
+//
+//    if( theoremset.data[j]->isRightTheorem && i )
+//    {
+//        return 0;
+//    }
+    if( ProRepeaProp(i,j,hs) )
     {
         return 0;
     }
@@ -831,15 +917,20 @@ int  MpRule(
     {
 
 
+        if( theoremset.data[i]->type!=PROP_IMPL )
+        {
+            goto end_insert;
+        }
+
         apCopy[0] = CopyAstTree(pParse,theoremset.data[i],0);
         SetSameNode(pParse,&apCopy[0],ppTemp);
 
         if( hs )
         {
-            if( apCopy[0]->type!=PROP_IMPL )
-            {
-                goto end_insert;
-            }
+//            if( apCopy[0]->type!=PROP_IMPL )
+//            {
+//                goto end_insert;
+//            }
             rc = SubstProp(pParse,theoremset.data[j]->pLeft,apCopy[0]->pRight);
         }
         else
@@ -852,6 +943,8 @@ int  MpRule(
     {
        // log_a("i %d",i);
       //  PrintAst(pParse,theoremset.data[i]);
+
+        if( theoremset.data[j]->type!=PROP_IMPL ) goto end_insert;
         if( hs )
         {
             if( theoremset.data[i]->type!=PROP_IMPL ) goto end_insert;
@@ -888,17 +981,17 @@ int  MpRule(
 #if DEBUG
 
         //PrintSubstAst(pParse,theoremset.data[i]);
-        log_a("i: %d",i);
+        log_a("hs:%d i: %d",hs,i);
         PrintAst(pParse,theoremset.data[i]);
         //PrintSubstAst(pParse,theoremset.data[i]);
-        log_a("j: %d",j);
+        log_a("hs:%d j: %d",hs,j);
         PrintAst(pParse,theoremset.data[j]);
        // PrintSubstAst(pParse,theoremset.data[j]);
         log_a("----");
 #endif
         if( n<NUM_NOT_SAME+1 )
         {
-            log_a("num %d",theoremset.n);
+            log_c("num %d : ",theoremset.n-1);
             PrintSubstAst(pParse,apCopy[1]);
         }
     }
@@ -921,16 +1014,24 @@ void SetRefNum(int i)
 int DeepSearch(
         AstParse *pParse,
         TokenInfo **ppTemp,
-        int i)
+        int idx,
+        int iBegin,
+        int max)
 {
     int j;
     int nNow;
+    int nNow1;
     int rc;
 
-    for(j=aCnt[i]; (j<refset.nRef)&&j<theoremset.n; j++)
+//    for(j=iBegin; (j<max)&&j<theoremset.n; j++)
+//    {
+//        rc = MpRule(pParse,ppTemp,idx,j,0);
+//    }
+    for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
     {
-        rc = MpRule(pParse,ppTemp,i,refset.aSet[j],0);
-        if( rc )
+        rc = MpRule(pParse,ppTemp,idx,refset.aSet[j],0);
+
+        if( theoremset.n<aRefTable[REF_NUM-1].reftime+500 && rc )
         {
             nNow = theoremset.n-1;
             for(int k=0;k<refset.nRef;k++)
@@ -938,16 +1039,26 @@ int DeepSearch(
                 int r;
                 //公理做前件
                 r = MpRule(pParse,ppTemp,k,nNow,0);
+                //r = MpRule(pParse,ppTemp,refset.aSet[k],nNow,0);// todo 应是refset.aSet[j]
+                if( refset.nRef>9 )
+                {
+                    MpRule(pParse,ppTemp,nNow,refset.aSet[k],1);
+                    MpRule(pParse,ppTemp,refset.aSet[k],nNow,1);
+                }
                 if( r )
                 {
-                    nNow = theoremset.n-1;
+                    nNow1 = theoremset.n-1;
 
                     for(int k=0;k<refset.nRef;k++)
                     {
                         //HS
-                        MpRule(pParse,ppTemp,nNow,k,1);
-                        MpRule(pParse,ppTemp,k,nNow,1);
+                        MpRule(pParse,ppTemp,nNow1,k,1);
+                        MpRule(pParse,ppTemp,k,nNow1,1);
                     }
+                }
+                if( r && refset.nRef<10 )
+                {
+                    nNow = nNow1;//保留之前的bug，如果改掉则引理表都要重写
                 }
 
             }
@@ -984,19 +1095,31 @@ void  SubstPropTest(
     log_a("***********");
     for(i=0; i<INDEX_I&&i<theoremset.n; i++)
     {
-        //for(j=aCnt[i]; (j<INDEX_J)&&j<theoremset.n; j++)
-
-        aCnt[i] = DeepSearch(pParse,ppTemp,i);
-        if( refset.nRef<4 && theoremset.n>aRefTable[refset.nRef])
+        aCnt[i] = DeepSearch(pParse,ppTemp,i,aCnt[i],INDEX_J);
+        if( refset.nRef<REF_NUM &&
+                theoremset.n<aRefTable[REF_NUM-1].reftime+500 &&
+                theoremset.n>aRefTable[refset.nRef].reftime)
         {
-            int iNew;
-            iNew = aRefTable[refset.nRef];
-            if( iNew<1000)
+            if(refset.nRef==9)
             {
-                SetRefNum(iNew);
-                aCnt[iNew] = DeepSearch(pParse,ppTemp,iNew);
+                log_a("*");
+            }
+            int iNew;
+            iNew = aRefTable[refset.nRef].refprop;
+
+            assert(iNew!=15);
+            SetRefNum(iNew);
+            if(iNew<1000)
+            {
+                aCnt[iNew] = DeepSearch(pParse,ppTemp,iNew,aCnt[iNew],refset.nRef);
+            }
+            else
+            {
+                DeepSearch(pParse,ppTemp,iNew,0,refset.nRef);
             }
         }
+
+
         if(i==iLoop&&iLoop<100)
         {
             iLoop++;
