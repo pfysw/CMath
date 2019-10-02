@@ -29,7 +29,7 @@ typedef struct vector
 typedef struct RefTherom
 {
     int nRef;
-    u8 aSet[100];
+    int aSet[100];
 }RefTherom;
 
 RefTherom refset;
@@ -45,15 +45,15 @@ RefTable aRefTable[100] =
     {0,0},
     {1,1},
     {2,2},
-    {22,22},
-    //{52,52},//  (A->B)->((C->A)->(C->B)))
+    {22,22},//  (A->B)->((C->A)->(C->B)))
     {39,39},  //(((A->B)->(C->A))->((A->B)->(C->B)))
-    {161,161},//(~~A->(B->A))
-    {166,166},//  ~~A->A
-    {271,271},// (A->(~~B->B))
-    {451,451},  //((A->B)->(~~A->B))
-    {434,500}  //(A->(B->~~B))    9
+    {124,124},//(~~A->(B->A))
+    {129,129},//  ~~A->A
+    {186,186},// (A->(~~B->B))
+    {341,341},  //((A->B)->(~~A->B))
+    {322,500},  //(A->(B->~~B))    9
     //((A->B)->(A->~~B))
+    {672,672} //((A->B)->(~~A->~~B))
 };
 #define REF_NUM    10
 
@@ -483,7 +483,7 @@ void InsertVector(Vector *pV,TokenInfo *pData)
 {
     TokenInfo **temp;
 
-    if( pV->n==663 )
+    if( pV->n==16 )
     {
         log_a("ss");
     }
@@ -1038,8 +1038,8 @@ int DeepSearch(
             {
                 int r;
                 //公理做前件
-                r = MpRule(pParse,ppTemp,k,nNow,0);
-                //r = MpRule(pParse,ppTemp,refset.aSet[k],nNow,0);// todo 应是refset.aSet[j]
+                //r = MpRule(pParse,ppTemp,k,nNow,0);
+                r = MpRule(pParse,ppTemp,refset.aSet[k],nNow,0);// todo 应是refset.aSet[j]
                 if( refset.nRef>9 )
                 {
                     MpRule(pParse,ppTemp,nNow,refset.aSet[k],1);
@@ -1052,8 +1052,8 @@ int DeepSearch(
                     for(int k=0;k<refset.nRef;k++)
                     {
                         //HS
-                        MpRule(pParse,ppTemp,nNow1,k,1);
-                        MpRule(pParse,ppTemp,k,nNow1,1);
+                        MpRule(pParse,ppTemp,nNow1,refset.aSet[k],1);
+                        MpRule(pParse,ppTemp,refset.aSet[k],nNow1,1);
                     }
                 }
                 if( r && refset.nRef<10 )
