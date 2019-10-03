@@ -53,9 +53,18 @@ RefTable aRefTable[100] =
     {341,341},  //((A->B)->(~~A->B))
     {322,500},  //(A->(B->~~B))    9
     //((A->B)->(A->~~B))
-    {672,672} //((A->B)->(~~A->~~B))
+    {677,1000}, //((A->B)->(~B->~A))
+    {121,677},   //(~A->(A->B))     11
+    {1921,1921},     //((~A->A)->(~A->B))
+    {2174,2174},  //(((~A->A)->~B)->((~A->A)->~~A))
+    {188,188},    //(A->~~A)   14
+    //num 2728 : ((~A->A)->~~A)
+    //num 2731 : ((~A->A)->A)
 };
-#define REF_NUM    10
+
+
+#define REF_NUM    15
+#define REF_TEST    3000
 
 u8 isEqualNode(TokenInfo *pA,TokenInfo *pB)
 {
@@ -129,7 +138,7 @@ int GetDiffNode(
         n = 0;
     }
     cnt++;
-    assert( cnt<20 );
+    assert( cnt<30 );
     if(  (*ppAst)->type==PROP_SYMB )
     {
 
@@ -481,9 +490,8 @@ int  SubstProp(
 
 void InsertVector(Vector *pV,TokenInfo *pData)
 {
-    TokenInfo **temp;
 
-    if( pV->n==16 )
+    if( pV->n==2624 )
     {
         log_a("ss");
     }
@@ -1022,6 +1030,7 @@ int DeepSearch(
     int nNow;
     int nNow1;
     int rc;
+    int temp;
 
 //    for(j=iBegin; (j<max)&&j<theoremset.n; j++)
 //    {
@@ -1030,17 +1039,34 @@ int DeepSearch(
     for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
     {
         rc = MpRule(pParse,ppTemp,idx,refset.aSet[j],0);
-
-        if( theoremset.n<aRefTable[REF_NUM-1].reftime+500 && rc )
+        temp = theoremset.n-1;;
+        if( refset.nRef==13 )
         {
-            nNow = theoremset.n-1;
+            log_a("test1");
+            if( MpRule(pParse,ppTemp,idx,refset.aSet[j],1) )
+            {
+                MpRule(pParse,ppTemp,theoremset.n-1,1,0);
+            }
+        }
+        if( refset.nRef==15 )
+        {
+            for(int k=0;k<refset.nRef;k++)
+            {
+                MpRule(pParse,ppTemp,temp,refset.aSet[k],1);
+            }
+        }
+
+        if( theoremset.n<REF_TEST && rc )
+        {
+            nNow = temp;
+            //nNow = theoremset.n-1;
             for(int k=0;k<refset.nRef;k++)
             {
                 int r;
                 //公理做前件
                 //r = MpRule(pParse,ppTemp,k,nNow,0);
                 r = MpRule(pParse,ppTemp,refset.aSet[k],nNow,0);// todo 应是refset.aSet[j]
-                if( refset.nRef>9 )
+                if( refset.nRef==10 )
                 {
                     MpRule(pParse,ppTemp,nNow,refset.aSet[k],1);
                     MpRule(pParse,ppTemp,refset.aSet[k],nNow,1);
@@ -1097,10 +1123,10 @@ void  SubstPropTest(
     {
         aCnt[i] = DeepSearch(pParse,ppTemp,i,aCnt[i],INDEX_J);
         if( refset.nRef<REF_NUM &&
-                theoremset.n<aRefTable[REF_NUM-1].reftime+500 &&
+                theoremset.n<REF_TEST &&
                 theoremset.n>aRefTable[refset.nRef].reftime)
         {
-            if(refset.nRef==9)
+            if(refset.nRef==10)
             {
                 log_a("*");
             }
