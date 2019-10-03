@@ -138,7 +138,7 @@ int GetDiffNode(
         n = 0;
     }
     cnt++;
-    assert( cnt<30 );
+    assert( cnt<40 );
     if(  (*ppAst)->type==PROP_SYMB )
     {
 
@@ -491,7 +491,7 @@ int  SubstProp(
 void InsertVector(Vector *pV,TokenInfo *pData)
 {
 
-    if( pV->n==2624 )
+    if( pV->n==29708 )
     {
         log_a("ss");
     }
@@ -823,10 +823,6 @@ int InsertMpProp(
 
     SetRepeatFlag(i,j,0,apCopy[1]);
 
-    if( theoremset.n==22 )
-    {
-        log_a("s");
-    }
     InsertVector(&theoremset,apCopy[1]);
 
     n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
@@ -986,21 +982,24 @@ int  MpRule(
             }
         }
 
-#if DEBUG
-
-        //PrintSubstAst(pParse,theoremset.data[i]);
-        log_a("hs:%d i: %d",hs,i);
-        PrintAst(pParse,theoremset.data[i]);
-        //PrintSubstAst(pParse,theoremset.data[i]);
-        log_a("hs:%d j: %d",hs,j);
-        PrintAst(pParse,theoremset.data[j]);
-       // PrintSubstAst(pParse,theoremset.data[j]);
-        log_a("----");
-#endif
-        if( n<NUM_NOT_SAME+1 )
+        //if( i>2 && j>2 )
         {
-            log_c("num %d : ",theoremset.n-1);
-            PrintSubstAst(pParse,apCopy[1]);
+#if DEBUG
+            //PrintSubstAst(pParse,theoremset.data[i]);
+            log_a("hs:%d i: %d",hs,i);
+            PrintAst(pParse,theoremset.data[i]);
+            //PrintSubstAst(pParse,theoremset.data[i]);
+            log_a("hs:%d j: %d",hs,j);
+            PrintAst(pParse,theoremset.data[j]);
+           // PrintSubstAst(pParse,theoremset.data[j]);
+            log_a("----");
+
+#endif
+            if( n<NUM_NOT_SAME+1 )
+            {
+                log_c("num %d : ",theoremset.n-1);
+                PrintSubstAst(pParse,apCopy[1]);
+            }
         }
     }
 end_insert:
@@ -1032,13 +1031,30 @@ int DeepSearch(
     int rc;
     int temp;
 
-//    for(j=iBegin; (j<max)&&j<theoremset.n; j++)
+//    if( theoremset.n>REF_TEST )
 //    {
-//        rc = MpRule(pParse,ppTemp,idx,j,0);
+////        for(j=iBegin; (j<max)&&j<theoremset.n; j++)
+////        {
+////            rc = MpRule(pParse,ppTemp,idx,j,0);
+////        }
+//
+//        for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
+//        {
+//            rc = MpRule(pParse,ppTemp,idx,refset.aSet[j],0);
+//        }
+//        return j;
 //    }
+
     for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
     {
         rc = MpRule(pParse,ppTemp,idx,refset.aSet[j],0);
+
+        if( theoremset.n>REF_TEST )
+        {
+            rc = MpRule(pParse,ppTemp,refset.aSet[j],idx,0);
+            continue;
+        }
+
         temp = theoremset.n-1;;
         if( refset.nRef==13 )
         {
@@ -1056,7 +1072,7 @@ int DeepSearch(
             }
         }
 
-        if( theoremset.n<REF_TEST && rc )
+        if(  rc )
         {
             nNow = temp;
             //nNow = theoremset.n-1;
@@ -1122,6 +1138,14 @@ void  SubstPropTest(
     for(i=0; i<INDEX_I&&i<theoremset.n; i++)
     {
         aCnt[i] = DeepSearch(pParse,ppTemp,i,aCnt[i],INDEX_J);
+        if( theoremset.n>3000 )
+        {
+            for(int j=3;j<refset.nRef;j++)
+            {
+                //refset.aSet[j]++;
+                refset.aSet[j] = j+theoremset.n-3000;
+            }
+        }
         if( refset.nRef<REF_NUM &&
                 theoremset.n<REF_TEST &&
                 theoremset.n>aRefTable[refset.nRef].reftime)
