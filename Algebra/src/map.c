@@ -14,6 +14,7 @@
 void FieldMapping(MapEle* pMap, VectorEle* pVec)
 {
     int i;
+
     for(i=0;i<pMap->nSigma;i++)
     {
         pMap->xSigma(pVec);
@@ -22,6 +23,7 @@ void FieldMapping(MapEle* pMap, VectorEle* pVec)
     {
         pMap->xTau(pVec);
     }
+
 }
 //
 //MapEle* Isomorphisms(

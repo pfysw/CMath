@@ -44,6 +44,7 @@ typedef struct AstParse AstParse;
 struct AstParse
 {
     TokenInfo *pRoot;
+    u8 bDiscard;
     int n;
     int malloc_cnt;
     int free_cnt;

@@ -138,7 +138,10 @@ int GetDiffNode(
         n = 0;
     }
     cnt++;
-    assert( cnt<40 );
+    if( cnt>10 )
+    {
+        pParse->bDiscard = 1;
+    }
     if(  (*ppAst)->type==PROP_SYMB )
     {
 
@@ -491,7 +494,7 @@ int  SubstProp(
 void InsertVector(Vector *pV,TokenInfo *pData)
 {
 
-    if( pV->n==29708 )
+    if( pV->n==2978 )
     {
         log_a("ss");
     }
@@ -745,6 +748,13 @@ void SetRepeatFlag(int i,int j,int hs,TokenInfo *pCopy)
                 }
             }
         }
+        else
+        {
+            if( i==4 )
+            {
+                pCopy->isRightTheorem = 1;
+            }
+        }
     }
 }
 
@@ -768,7 +778,7 @@ int ProRepeaProp(int i,int j,int hs)
         }
         else if( theoremset.n>5 )
         {
-            if( j==5||j==4 )
+            if( j==5 )
             {
                 return 1;
             }
@@ -777,6 +787,16 @@ int ProRepeaProp(int i,int j,int hs)
             {
                 return 1;
             }
+            if( i==4 && j==1 )
+            {
+                return 1;
+            }
+            //124  ((~~A->~~B)->(A->B))
+            //39 ((A->B)->(C->((D->A)->(D->B))))
+//            if( i==5 && (j==22||j==39||j==124))
+//            {
+//                return 1;
+//            }
         }
         else if( 5==theoremset.n )
         {
@@ -807,7 +827,11 @@ int InsertMpProp(
 #if DEBUG&&0
     log_a("n %d",n);
 #endif
-    if( n>NUM_NOT_SAME ) return 0;
+    if( n>NUM_NOT_SAME || pParse->bDiscard )
+    {
+        pParse->bDiscard = 0;
+        return 0;
+    }
 
 
     for(k=0; k<n; k++)
@@ -858,8 +882,9 @@ int InsertHSProp(
     }
 
     n = GetDiffNode(pParse,&apCopy[2],ppTemp,1);
-    if( n>NUM_NOT_SAME )
+    if( n>NUM_NOT_SAME || pParse->bDiscard )
     {
+        pParse->bDiscard = 0;
         rc = 0;
         goto free_node;
     }
@@ -875,6 +900,7 @@ int InsertHSProp(
     InsertVector(&theoremset,apCopy[1]);
 
     n = GetDiffNode(pParse,&theoremset.data[j],ppTemp,0);
+    pParse->bDiscard = 0;
     for(k=0; k<n; k++)
     {
         ppTemp[k]->symb = 'A'+k;
@@ -902,15 +928,6 @@ int  MpRule(
 
     TokenInfo *apCopy[5];
 
-//    if( 1==theoremset.data[j]->isRightTheorem )
-//    {
-//        return 0;
-//    }
-//
-//    if( theoremset.data[j]->isRightTheorem && i )
-//    {
-//        return 0;
-//    }
     if( ProRepeaProp(i,j,hs) )
     {
         return 0;
@@ -1030,20 +1047,6 @@ int DeepSearch(
     int nNow1;
     int rc;
     int temp;
-
-//    if( theoremset.n>REF_TEST )
-//    {
-////        for(j=iBegin; (j<max)&&j<theoremset.n; j++)
-////        {
-////            rc = MpRule(pParse,ppTemp,idx,j,0);
-////        }
-//
-//        for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
-//        {
-//            rc = MpRule(pParse,ppTemp,idx,refset.aSet[j],0);
-//        }
-//        return j;
-//    }
 
     for(j=iBegin; (j<refset.nRef)&&j<theoremset.n; j++)
     {

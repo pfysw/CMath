@@ -9,6 +9,7 @@
 
 #define POLY_EXP 4
 
+
 void IsGroup(OperateSys *pOpSys)
 {
     AssociativeLaw(pOpSys);

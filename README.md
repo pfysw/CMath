@@ -1,12 +1,7 @@
 # CMath
-I like math and think the mathematical idea is useful
-to write code,but when I read the mathematical book,
-I always don't understand what the exact information
-that the author want to say.So I try to implement
-the mathematical concept by using C language,then I hope
-the mathematical concept can be more clearly.   
+用代码来实现数学的相关内容，希望能够实现自动推理。
     
-The content is incluude：     
-- Algebra   
-- Combinatorics   
-- Mathematical Logic
+目前内容包括：     
+- 抽象代数  
+- 组合数学   
+- 数理逻辑

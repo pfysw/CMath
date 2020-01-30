@@ -30,7 +30,8 @@ int main(int argc, char** argv) {
    setbuf(stdout, NULL);
    yylex_init(&scanner);
 
-   if (!(fd = fopen("in", "r"))) {
+   if (!(fd = fopen("in", "r")))
+   {
        perror(argv[1]);
        return 1;
    }
@@ -82,3 +83,6 @@ int main(int argc, char** argv) {
 
    return 0;
 }
+
+
+
