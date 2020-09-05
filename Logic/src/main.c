@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
    memset(pParse,0,sizeof(AstParse));
    pToken = NewNode(pParse);
    token = yylex(scanner);
-   //ParseTrace(stdout, "");
+   //PropParseTrace(stdout, "");
    while (token)
    {
 
@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
            PrintAst(pParse,pParse->pRoot);
            ppTest[idx++] = pParse->pRoot;
            if( idx>4 ) break;
+          // if( idx>0 ) return 0;
        }
 	   token = yylex(scanner);
 	   if( token )

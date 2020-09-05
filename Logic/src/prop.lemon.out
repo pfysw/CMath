@@ -5,11 +5,11 @@ State 0:
           expr ::= * TK_NEG expr
           expr ::= * TK_SYM
 
-                        TK_NEG shift  1
-                     TK_LPAREN shift  2
-                        TK_SYM shift  7
+                        TK_NEG shift        1      
+                     TK_LPAREN shift        2      
+                        TK_SYM shift-reduce 4      expr ::= TK_SYM
                        program accept
-                          expr shift  5
+                          expr shift        5      
 
 State 1:
           expr ::= * expr TK_IMPL expr
@@ -18,10 +18,10 @@ State 1:
           expr ::= TK_NEG * expr
           expr ::= * TK_SYM
 
-                        TK_NEG shift  1
-                     TK_LPAREN shift  2
-                        TK_SYM shift  7
-                          expr shift  8
+                        TK_NEG shift        1      
+                     TK_LPAREN shift        2      
+                        TK_SYM shift-reduce 4      expr ::= TK_SYM
+                          expr shift-reduce 3      expr ::= TK_NEG expr
 
 State 2:
           expr ::= * expr TK_IMPL expr
@@ -30,10 +30,10 @@ State 2:
           expr ::= * TK_NEG expr
           expr ::= * TK_SYM
 
-                        TK_NEG shift  1
-                     TK_LPAREN shift  2
-                        TK_SYM shift  7
-                          expr shift  4
+                        TK_NEG shift        1      
+                     TK_LPAREN shift        2      
+                        TK_SYM shift-reduce 4      expr ::= TK_SYM
+                          expr shift        4      
 
 State 3:
           expr ::= * expr TK_IMPL expr
@@ -42,61 +42,52 @@ State 3:
           expr ::= * TK_NEG expr
           expr ::= * TK_SYM
 
-                        TK_NEG shift  1
-                     TK_LPAREN shift  2
-                        TK_SYM shift  7
-                          expr shift  10
+                        TK_NEG shift        1      
+                     TK_LPAREN shift        2      
+                        TK_SYM shift-reduce 4      expr ::= TK_SYM
+                          expr shift-reduce 1      expr ::= expr TK_IMPL expr
 
 State 4:
           expr ::= expr * TK_IMPL expr
           expr ::= TK_LPAREN expr * TK_RPAREN
 
-                       TK_IMPL shift  3
-                     TK_RPAREN shift  9
+                       TK_IMPL shift        3      
+                     TK_RPAREN shift-reduce 2      expr ::= TK_LPAREN expr TK_RPAREN
 
 State 5:
           program ::= expr * TK_SEM
           expr ::= expr * TK_IMPL expr
 
-                       TK_IMPL shift  3
-                        TK_SEM shift  6
+                       TK_IMPL shift        3      
+                        TK_SEM shift        6      
 
 State 6:
       (0) program ::= expr TK_SEM *
 
-                             $ reduce 0
-
-State 7:
-      (4) expr ::= TK_SYM *
-
-                     {default} reduce 4
-
-State 8:
-          expr ::= expr * TK_IMPL expr
-      (3) expr ::= TK_NEG expr *
-
-                     {default} reduce 3
-
-State 9:
-      (2) expr ::= TK_LPAREN expr TK_RPAREN *
-
-                     {default} reduce 2
-
-State 10:
-          expr ::= expr * TK_IMPL expr
-      (1) expr ::= expr TK_IMPL expr *
-
-                     {default} reduce 1
+                             $ reduce       0      program ::= expr TK_SEM
 
 ----------------------------------------------------
 Symbols:
+The first-set of non-terminals is shown after the name.
+
     0: $:
-    1: TK_IMPL
-    2: TK_NEG
+    1: TK_IMPL (precedence=1)
+    2: TK_NEG (precedence=2)
     3: TK_SEM
     4: TK_LPAREN
     5: TK_RPAREN
     6: TK_SYM
-    7: error:
-    8: program: TK_NEG TK_LPAREN TK_SYM
-    9: expr: TK_NEG TK_LPAREN TK_SYM
+    7: program: TK_NEG TK_LPAREN TK_SYM
+    8: expr: TK_NEG TK_LPAREN TK_SYM
+----------------------------------------------------
+Syntax-only Symbols:
+The following symbols never carry semantic content.
+
+$ program
+----------------------------------------------------
+Rules:
+   0: program ::= expr TK_SEM.
+   1: expr ::= expr TK_IMPL expr. [TK_IMPL precedence=1]
+   2: expr ::= TK_LPAREN expr TK_RPAREN.
+   3: expr ::= TK_NEG expr. [TK_NEG precedence=2]
+   4: expr ::= TK_SYM.

@@ -27,6 +27,7 @@ lex.yy.c lex.yy.h:prop.lex.l
 token.h:prop.lemon.h
 
 prop.lemon.c prop.lemon.h:prop.lemon.y
+	${CC} ${CCFLAGS} ../lemon.c -o ../lemon
 	../lemon prop.lemon.y
     
 clean:
