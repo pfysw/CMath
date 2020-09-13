@@ -23,7 +23,6 @@ int main(int argc, char** argv) {
    TokenInfo *pToken;
    void* pLemon = PropParseAlloc(malloc);
    AstParse *pParse;
-   TokenInfo *ppTemp[100];
    TokenInfo *ppTest[10];
    int idx = 0;
 
@@ -60,7 +59,7 @@ int main(int argc, char** argv) {
            PrintAst(pParse,pParse->pRoot);
            ppTest[idx++] = pParse->pRoot;
            if( idx>4 ) break;
-          // if( idx>0 ) return 0;
+           //if( idx>0 ) break;
        }
 	   token = yylex(scanner);
 	   if( token )
@@ -71,8 +70,9 @@ int main(int argc, char** argv) {
    }
    printf("end %d %s\n",token,yyget_text(scanner));
 
-  // GenBasicProp(pParse);
-   SubstPropTest(pParse,ppTest);
+   //GenBasicProp(pParse);
+   //SubstPropTest(pParse,ppTest);
+   SubstMpTest(pParse,ppTest);
 
 
    yylex_destroy(scanner);

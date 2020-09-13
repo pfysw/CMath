@@ -85,7 +85,6 @@ int SetSameNode(
     static int n = 0;
     static int cnt = 0;
     int i;
-    TokenInfo *pTmp;
     int rc;
 
     if( !cnt )
@@ -100,8 +99,11 @@ int SetSameNode(
         {
             if( isEqualNode((*ppAst),ppTemp[i]) )
             {
-                FreeAstNode(pParse,(*ppAst));
-                *ppAst = ppTemp[i];
+                if(*ppAst!=ppTemp[i])
+                {
+                    FreeAstNode(pParse,(*ppAst));
+                    *ppAst = ppTemp[i];
+                }
                 rc = 1;
                 break;
             }
@@ -864,6 +866,66 @@ end_insert:
     return rc;
 }
 
+
+TokenInfo *  PropMpSubst(
+        AstParse *pParse,
+        TokenInfo **ppTemp,
+        TokenInfo *pA,//条件
+        TokenInfo *pB)//定理
+{
+    int rc = 0;
+    int k;
+    TokenInfo *apCopy[5] = {0};
+
+    SetSameNode(pParse,&pA,ppTemp);
+    SetSameNode(pParse,&pB,ppTemp);
+    if(pA==pB)
+    {
+        if( pB->type!=PROP_IMPL )
+        {
+            goto end_insert;//不可能出现这种情况
+        }
+        apCopy[0] = CopyAstTree(pParse,pB,0);
+        SetSameNode(pParse,&apCopy[0],ppTemp);
+        rc = SubstProp(pParse,pA,apCopy[0]->pLeft);
+    }
+    else
+    {
+        rc = SubstProp(pParse,pA,pB->pLeft);
+    }
+
+    if( rc )
+    {
+        int n,m;
+
+        m = GetAllNode(pParse,&pB->pRight,ppTemp);
+        if( m>10 ) goto end_insert;
+        n = GetDiffNode(pParse,&pB->pRight,ppTemp,1);
+        if( n>NUM_NOT_SAME || pParse->bDiscard )
+        {
+            pParse->bDiscard = 0;
+            goto end_insert;
+        }
+        for(k=0; k<n; k++)
+        {
+            ppTemp[k]->copy = 'A'+k;
+        }
+        apCopy[1] = CopyAstTree(pParse,pB->pRight,1);
+        SetSameNode(pParse,&apCopy[1],ppTemp);
+       // PrintSubstAst(pParse,apCopy[1]);
+    }
+
+end_insert:
+    ClearSubstFlag(pParse,pA);
+    ClearSubstFlag(pParse,pB);
+    if( pA==pB )
+    {
+        FreeAstTree(pParse,&apCopy[0],ppTemp);
+    }
+
+    return apCopy[1];
+}
+
 void SetRefNum(int i)
 {
     refset.aSet[refset.nRef++] = i;
@@ -1035,4 +1097,37 @@ void  SubstPropTest(
 
 }
 
+void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
+{
+    int i;
+    int n;
+    int rc;
+    TokenInfo *ppTemp[100];
+    for(i=0; i<3; i++)
+    {
+        PrintAst(pParse,ppTest[i]);
+        n = SetSameNode(pParse,&ppTest[i],ppTemp);
+        log_a("n %d",n);
+    }
+
+    TokenInfo *pR = PropMpSubst(pParse,ppTemp,ppTest[4],ppTest[3]);
+    PrintSubstAst(pParse,pR);
+    FreeAstTree(pParse,&pR,ppTemp);
+
+    SetSameNode(pParse,&ppTest[3],ppTemp);
+    SetSameNode(pParse,&ppTest[4],ppTemp);
+    rc = SubstProp(pParse,ppTest[3]->pLeft,ppTest[4]);
+    log_a("rc %d",rc);
+
+    PrintSubstAst(pParse,ppTest[3]);
+    PrintSubstAst(pParse,ppTest[4]);
+    ClearSubstFlag(pParse,ppTest[3]);
+    ClearSubstFlag(pParse,ppTest[4]);
+    PrintSubstAst(pParse,ppTest[3]);
+    PrintSubstAst(pParse,ppTest[4]);
+    for(i=0; i<5; i++)
+    {
+        FreeAstTree(pParse,&ppTest[i],ppTemp);
+    }
+}
 

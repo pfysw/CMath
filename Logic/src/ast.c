@@ -126,7 +126,7 @@ TokenInfo *NewNode(AstParse *pParse)
     p = (TokenInfo *)malloc(sizeof(TokenInfo));
     pParse->malloc_cnt++;
     memset(p,0,sizeof(TokenInfo));
-    //log_a("cnt %d",pParse->malloc_cnt);
+
     return p;
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
