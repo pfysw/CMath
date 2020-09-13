@@ -9,6 +9,7 @@
 #include <string.h>
 #include "token.h"
 #include <assert.h>
+#include "prop.h"
 
 typedef struct PermData
 {
@@ -1097,12 +1098,14 @@ void  SubstPropTest(
 
 }
 
+
 void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
 {
     int i;
     int n;
     int rc;
     TokenInfo *ppTemp[100];
+    TokenInfo *pR;
     for(i=0; i<3; i++)
     {
         PrintAst(pParse,ppTest[i]);
@@ -1110,9 +1113,11 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         log_a("n %d",n);
     }
 
-    TokenInfo *pR = PropMpSubst(pParse,ppTemp,ppTest[4],ppTest[3]);
-    PrintSubstAst(pParse,pR);
-    FreeAstTree(pParse,&pR,ppTemp);
+    pR = PropMpSeq(pParse,ppTest,ppTemp,ppTest[5]);
+    if(pR!=NULL){
+        PrintSubstAst(pParse,pR);
+    }
+    FreePropSeq(pParse,ppTest[5],ppTemp);
 
     SetSameNode(pParse,&ppTest[3],ppTemp);
     SetSameNode(pParse,&ppTest[4],ppTemp);
@@ -1125,9 +1130,8 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     ClearSubstFlag(pParse,ppTest[4]);
     PrintSubstAst(pParse,ppTest[3]);
     PrintSubstAst(pParse,ppTest[4]);
-    for(i=0; i<5; i++)
+    for(i=0; i<6; i++)
     {
         FreeAstTree(pParse,&ppTest[i],ppTemp);
     }
 }
-

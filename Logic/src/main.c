@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
    void* pLemon = PropParseAlloc(malloc);
    AstParse *pParse;
    TokenInfo *ppTest[10];
+   TokenInfo *ppSeq[10];
    int idx = 0;
 
    setbuf(stdout, NULL);
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
            log_a("----------");
            PrintAst(pParse,pParse->pRoot);
            ppTest[idx++] = pParse->pRoot;
-           if( idx>4 ) break;
+           if( idx>5 ) break;
            //if( idx>0 ) break;
        }
 	   token = yylex(scanner);

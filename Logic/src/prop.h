@@ -17,4 +17,14 @@ int  SubstProp(
 void  SubstPropTest(
         AstParse *pParse,
         TokenInfo **ppTest);
+TokenInfo *  PropMpSubst(
+        AstParse *pParse,
+        TokenInfo **ppTemp,
+        TokenInfo *pA,//条件
+        TokenInfo *pB);//定理
+TokenInfo * PropMpSeq(AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo **ppTemp,
+        TokenInfo *pSeq);
+void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 #endif /* PROP_H_ */

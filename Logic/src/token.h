@@ -32,6 +32,7 @@ struct TokenInfo{
     TokenInfo *pSubst;
     TokenInfo *pLeft;
     TokenInfo *pRight;
+    TokenInfo *pTheorem;
     u8 type;
     u8 bSubst;
     u8 isRightTheorem;//1:右边是定理
