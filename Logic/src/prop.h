@@ -9,11 +9,14 @@
 #define PROP_H_
 #include "token.h"
 
+extern int axiom_num;
+
 void GenBasicProp(AstParse *pParse);
 int  SubstProp(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB);
+void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest);
 void  SubstPropTest(
         AstParse *pParse,
         TokenInfo **ppTest);
@@ -27,4 +30,5 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo **ppTemp,
         TokenInfo *pSeq);
 void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
+void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);
 #endif /* PROP_H_ */

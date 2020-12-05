@@ -482,7 +482,7 @@ extern int yylex (yyscan_t yyscanner);
 #undef yyTABLES_NAME
 #endif
 
-#line 19 "prop.lex.l"
+#line 20 "prop.lex.l"
 
 
 #line 488 "lex.yy.h"

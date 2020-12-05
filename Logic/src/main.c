@@ -10,6 +10,7 @@
 #include "token.h"
 #include "prop.h"
 
+#define MAX_FORMULA_NUM 6
 
 void* PropParseAlloc(void* (*allocProc)(size_t));
 void* PropParse(void*, int, TokenInfo*,AstParse *pParse);
@@ -23,8 +24,8 @@ int main(int argc, char** argv) {
    TokenInfo *pToken;
    void* pLemon = PropParseAlloc(malloc);
    AstParse *pParse;
-   TokenInfo *ppTest[10];
-   TokenInfo *ppSeq[10];
+   TokenInfo *ppTest[100];
+   TokenInfo *ppSeq[100];
    int idx = 0;
 
    setbuf(stdout, NULL);
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
            log_a("----------");
            PrintAst(pParse,pParse->pRoot);
            ppTest[idx++] = pParse->pRoot;
-           if( idx>5 ) break;
+           if( idx>axiom_num ) break;
            //if( idx>0 ) break;
        }
 	   token = yylex(scanner);
@@ -69,10 +70,11 @@ int main(int argc, char** argv) {
 	       continue;
 	   }
    }
-   printf("end %d %s\n",token,yyget_text(scanner));
+   printf("end %d %s\n\n",token,yyget_text(scanner));
 
    //GenBasicProp(pParse);
-   //SubstPropTest(pParse,ppTest);
+  // SubstPropTest(pParse,ppTest);
+  // SubstSingleTest(pParse,ppTest);
    SubstMpTest(pParse,ppTest);
 
 

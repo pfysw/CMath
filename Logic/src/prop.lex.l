@@ -15,5 +15,6 @@
 \(     { return TK_LPAREN; }
 \)    { return TK_RPAREN; }
 ;    { return TK_SEM; }
+"//".*                                    { /* DO NOTHING */ }
 
 %%

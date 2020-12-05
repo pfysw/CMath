@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "prop.h"
 
+//#define MP_DEBUG
 
 TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo **ppTest,
@@ -20,10 +21,10 @@ TokenInfo * PropMpSeq(AstParse *pParse,
     if( pSeq->type==PROP_SYMB )
     {
         iNum = pSeq->symb - 'A';
-        assert(iNum<3);
+        //assert(iNum<3);
         pSeq->pTheorem = ppTest[iNum];
-        //log_c("L%d:",iNum+1);
-        //PrintSubstAst(pParse,pSeq->pTheorem);
+//        log_c("L%d:",iNum+1);
+//        PrintSubstAst(pParse,pSeq->pTheorem);
         cnt--;
         return pSeq->pTheorem;
     }
@@ -31,12 +32,23 @@ TokenInfo * PropMpSeq(AstParse *pParse,
     {
         pLeft =  PropMpSeq(pParse,ppTest,ppTemp,pSeq->pLeft);
         pRight =  PropMpSeq(pParse,ppTest,ppTemp,pSeq->pRight);
+#ifdef MP_DEBUG
+        log_a("left");
+        PrintAst(pParse,pLeft);
+        log_a("right");
+        PrintAst(pParse,pRight);
+#endif
         if(pLeft!=NULL&&pRight!=NULL)
         {
             pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pLeft,pRight);
+#ifdef MP_DEBUG
+            log_a("mp");
+            PrintAst(pParse,pSeq->pTheorem);
+#endif
         }
         else
         {
+            log_a("mp null");
             pSeq->pTheorem = NULL;
         }
         cnt--;
