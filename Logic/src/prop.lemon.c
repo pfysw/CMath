@@ -863,8 +863,8 @@ static YYACTIONTYPE yy_reduce(
 {
     pParse->pRoot = yymsp[-1].minor.yy0;
     FreeAstNode(pParse,yymsp[0].minor.yy0);
-	printf(" result!\n");
-	PrintAst(pParse,yymsp[-1].minor.yy0);
+	//printf(" result!\n");
+	//PrintAst(pParse,yymsp[-1].minor.yy0);
 }
 #line 870 "prop.lemon.c"
         break;

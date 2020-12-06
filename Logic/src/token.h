@@ -47,6 +47,8 @@ struct AstParse
     TokenInfo *pRoot;
     u8 bDiscard;
     int n;
+    int axiom_num;
+    int all_num;
     int malloc_cnt;
     int free_cnt;
 };

@@ -11,8 +11,6 @@
 #include <assert.h>
 #include "prop.h"
 
-int axiom_num=13;
-
 typedef struct PermData
 {
     u8 nAll;
@@ -1128,7 +1126,7 @@ void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest)
     ClearSubstFlag(pParse,ppTest[4]);
     PrintSubstAst(pParse,ppTest[3]);
     PrintSubstAst(pParse,ppTest[4]);
-    for(i=0; i<axiom_num+1; i++)
+    for(i=0; i<pParse->all_num; i++)
     {
         FreeAstTree(pParse,&ppTest[i],ppTemp);
     }
@@ -1143,25 +1141,31 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     TokenInfo *pR;//
     for(i=0; i<3; i++)
     {
-        //PrintAst(pParse,ppTest[i]);
+        printf("num:%d\n",i+1);
+        PrintAst(pParse,ppTest[i]);
         n = SetSameNode(pParse,&ppTest[i],ppTemp);
-        //log_a("n %d",n);
+        log_a("n %d",n);
     }
-    for(int i=3;i<axiom_num+1;i++)
+    for(i=3;i<pParse->axiom_num;i++)
     {
-        log_a("old i %d",i);
+        log_a("old i %d",i+1);
         PrintAst(pParse,ppTest[i]);
         pR = PropMpSeq(pParse,ppTest,ppTemp,ppTest[i]);
         pR = CopyAstTree(pParse,pR,0);
         FreePropSeq(pParse,ppTest[i],ppTemp);
         FreeAstTree(pParse,&ppTest[i],ppTemp);
         ppTest[i] = pR;
-        log_a("new i %d",i);
+        log_a("new i %d",i+1);
         PrintAst(pParse,ppTest[i]);
         n = SetSameNode(pParse,&ppTest[i],ppTemp);
     }
+    for(; i<pParse->all_num; i++)
+    {
+        printf("num:%d\n",i+1);
+        PrintAst(pParse,ppTest[i]);
+    }
 
-    for(i=0; i<axiom_num+1; i++)
+    for(i=0; i<pParse->all_num; i++)
     {
         FreeAstTree(pParse,&ppTest[i],ppTemp);
     }

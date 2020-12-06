@@ -21,8 +21,8 @@ exit(0);
 program ::= expr(A) TK_SEM(B). {
     pParse->pRoot = A;
     FreeAstNode(pParse,B);
-	printf(" result!\n");
-	PrintAst(pParse,A);
+	//printf(" result!\n");
+	//PrintAst(pParse,A);
 }
 
 expr(A) ::= expr(B) TK_IMPL(D) expr(C). {
