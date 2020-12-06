@@ -20,13 +20,6 @@ typedef struct PermData
     u8 aMap[10];
 }PermData;
 
-typedef struct vector
-{
-    TokenInfo **data;
-    int n;
-    int size;
-}Vector;
-
 typedef struct RefTherom
 {
     int nRef;
@@ -547,6 +540,12 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
 Vector theoremset;
 u8 aCnt[1000] = {0};
 
+void InitTheoremSet(void)
+{
+    memset(&theoremset,0,sizeof(Vector));
+    theoremset.size = 100;
+    theoremset.data = malloc(theoremset.size*sizeof(TokenInfo **));
+}
 
 void SetRepeatFlag(int i,int j,int hs,TokenInfo *pCopy)
 {
@@ -1023,10 +1022,6 @@ void  SubstPropTest(
     TokenInfo *ppTemp[100];
     int iLoop = 0;
 
-
-    memset(&theoremset,0,sizeof(Vector));
-    theoremset.size = 100;
-    theoremset.data = malloc(theoremset.size*sizeof(TokenInfo **));
     memset(&refset,0,sizeof(refset));
 
     for(i=0; i<3; i++)
@@ -1139,12 +1134,13 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     int n;
     TokenInfo *ppTemp[100];
     TokenInfo *pR;//
+
     for(i=0; i<3; i++)
     {
-        printf("num:%d\n",i+1);
-        PrintAst(pParse,ppTest[i]);
         n = SetSameNode(pParse,&ppTest[i],ppTemp);
         log_a("n %d",n);
+        printf("num:%d\n",i+1);
+        PrintAst(pParse,theoremset.data[i]);
     }
     for(i=3;i<pParse->axiom_num;i++)
     {
@@ -1165,7 +1161,8 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         PrintAst(pParse,ppTest[i]);
     }
 
-    for(i=0; i<pParse->all_num; i++)
+   // for(i=0; i<pParse->all_num; i++)
+    for(i=0; i<theoremset.n; i++)
     {
         FreeAstTree(pParse,&ppTest[i],ppTemp);
     }

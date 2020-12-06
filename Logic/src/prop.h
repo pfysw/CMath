@@ -11,6 +11,13 @@
 
 extern int axiom_num;
 
+typedef struct vector
+{
+    TokenInfo **data;
+    int n;
+    int size;
+}Vector;
+
 void GenBasicProp(AstParse *pParse);
 int  SubstProp(
         AstParse *pParse,
@@ -31,4 +38,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo *pSeq);
 void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);
+void InitTheoremSet(void);
+void InsertVector(Vector *pV,TokenInfo *pData);
+
 #endif /* PROP_H_ */

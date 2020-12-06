@@ -10,6 +10,8 @@
 #include "token.h"
 #include "prop.h"
 
+extern Vector theoremset;
+
 void* PropParseAlloc(void* (*allocProc)(size_t));
 void* PropParse(void*, int, TokenInfo*,AstParse *pParse);
 void* PropParseFree(void*, void(*freeProc)(void*));
@@ -37,13 +39,14 @@ int main(int argc, char** argv) {
    TokenInfo *pToken;
    void* pLemon = PropParseAlloc(malloc);
    AstParse *pParse;
-   TokenInfo *ppTest[100];
+  // TokenInfo *ppTest[100];
    int idx = 0;
    char *zSymb;
 
    setbuf(stdout, NULL);
    yylex_init(&scanner);
 
+   InitTheoremSet();
    fd = BindScanFd(scanner,"in");
    pParse = (AstParse *)malloc(sizeof(AstParse));
    memset(pParse,0,sizeof(AstParse));
@@ -64,7 +67,9 @@ int main(int argc, char** argv) {
            PropParse(pLemon, 0, 0,pParse);
 //           log_a("----- %d -----",idx);
 //           PrintAst(pParse,pParse->pRoot);
-           ppTest[idx++] = pParse->pRoot;
+           //ppTest[idx++] = pParse->pRoot;
+           idx++;
+           InsertVector(&theoremset,pParse->pRoot);
        }
 	   token = yylex(scanner);
 	   if( token )
@@ -92,7 +97,8 @@ int main(int argc, char** argv) {
    //GenBasicProp(pParse);
   // SubstPropTest(pParse,ppTest);
   // SubstSingleTest(pParse,ppTest);
-  SubstMpTest(pParse,ppTest);
+ // SubstMpTest(pParse,ppTest);
+   SubstMpTest(pParse,theoremset.data);
 
    yylex_destroy(scanner);
    PropParseFree(pLemon, free);
