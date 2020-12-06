@@ -17,7 +17,13 @@ void PrintAst(AstParse *pParse,TokenInfo *pAst)
     assert(pAst!=NULL);
     if( pAst->type==PROP_SYMB )
     {
-        log_c("%c",pAst->symb);
+        if(pAst->zSymb!=NULL){
+            log_c("%s",pAst->zSymb);
+        }
+        else{
+            log_c("%c",pAst->symb);
+        }
+
     }
     else if( pAst->type==PROP_NEG )
     {
@@ -131,10 +137,14 @@ TokenInfo *NewNode(AstParse *pParse)
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
 {
-//    if(p->type==PROP_SYMB)
-//    {
-//        free(p->zSymb);
-//    }
+    if(p->type==PROP_SYMB)
+    {
+        if(p->zSymb!=NULL){
+            free(p->zSymb);
+            p->zSymb = NULL;
+            pParse->free_cnt++;
+        }
+    }
    // log_a("free %s",p->zSymb);
     pParse->free_cnt++;
     free(p);
@@ -182,6 +192,15 @@ end:
     if(!cnt) n = 0;
 }
 
+void NewSymbString(TokenInfo *p)
+{
+    char temp[100] = {0};
+    assert(p->nSymbLen<10);
+    memcpy(temp,p->zSymb,p->nSymbLen);
+    p->zSymb = malloc(p->nSymbLen+1);
+    memcpy(p->zSymb,temp,p->nSymbLen+1);
+}
+
 void SetSymb(AstParse *pParse, TokenInfo *pB)
 {
 //分配字符串
@@ -193,6 +212,8 @@ void SetSymb(AstParse *pParse, TokenInfo *pB)
     memcpy(pB->zSymb,temp,pB->nSymbLen);
     log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
 #endif
+    NewSymbString(pB);
+    pParse->malloc_cnt++;
     pB->type = PROP_SYMB;
 }
 

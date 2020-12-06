@@ -20,7 +20,8 @@ TokenInfo * PropMpSeq(AstParse *pParse,
     assert(pSeq!=NULL);
     if( pSeq->type==PROP_SYMB )
     {
-        iNum = pSeq->symb - 'A';
+        //iNum = pSeq->symb - 'A';
+        iNum = atoi(pSeq->zSymb)-1;
         //assert(iNum<3);
         pSeq->pTheorem = ppTest[iNum];
 //        log_c("L%d:",iNum+1);
