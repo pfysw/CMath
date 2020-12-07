@@ -1132,13 +1132,12 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
 {
     int i;
     int n;
-    TokenInfo *ppTemp[100];
+    TokenInfo *ppTemp[100];//存在递归时的共享变量
     TokenInfo *pR;//
 
     for(i=0; i<3; i++)
     {
-        n = SetSameNode(pParse,&ppTest[i],ppTemp);
-        log_a("n %d",n);
+        SetSameNode(pParse,&ppTest[i],ppTemp);
         printf("num:%d\n",i+1);
         PrintAst(pParse,theoremset.data[i]);
     }
@@ -1147,13 +1146,15 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         log_a("old i %d",i+1);
         PrintAst(pParse,ppTest[i]);
         pR = PropMpSeq(pParse,ppTest,ppTemp,ppTest[i]);
-        pR = CopyAstTree(pParse,pR,0);
-        FreePropSeq(pParse,ppTest[i],ppTemp);
-        FreeAstTree(pParse,&ppTest[i],ppTemp);
-        ppTest[i] = pR;
+        if(pR!=NULL){
+            pR = CopyAstTree(pParse,pR,0);
+            FreePropSeq(pParse,ppTest[i],ppTemp);
+            FreeAstTree(pParse,&ppTest[i],ppTemp);
+            ppTest[i] = pR;
+        }
         log_a("new i %d",i+1);
         PrintAst(pParse,ppTest[i]);
-        n = SetSameNode(pParse,&ppTest[i],ppTemp);
+        SetSameNode(pParse,&ppTest[i],ppTemp);
     }
     for(; i<pParse->all_num; i++)
     {

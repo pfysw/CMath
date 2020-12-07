@@ -27,7 +27,8 @@ program ::= expr(A) TK_SEM(B). {
 
 expr(A) ::= expr(B) TK_IMPL(D) expr(C). {
 	A = NewNode(pParse);
-	SetImplExpr(pParse,A,B,C);
+	SetSymb(pParse,D);
+	SetImplExpr(pParse,A,B,C,D);
 	FreeAstNode(pParse,D);
 }
 expr(A) ::= TK_LPAREN(C) expr(B) TK_RPAREN(D). {

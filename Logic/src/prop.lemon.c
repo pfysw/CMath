@@ -872,41 +872,42 @@ static YYACTIONTYPE yy_reduce(
 #line 28 "prop.lemon.y"
 {
 	yylhsminor.yy0 = NewNode(pParse);
-	SetImplExpr(pParse,yylhsminor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0);
+	SetSymb(pParse,yymsp[-1].minor.yy0);
+	SetImplExpr(pParse,yylhsminor.yy0,yymsp[-2].minor.yy0,yymsp[0].minor.yy0,yymsp[-1].minor.yy0);
 	FreeAstNode(pParse,yymsp[-1].minor.yy0);
 }
-#line 879 "prop.lemon.c"
+#line 880 "prop.lemon.c"
   yymsp[-2].minor.yy0 = yylhsminor.yy0;
         break;
       case 2: /* expr ::= TK_LPAREN expr TK_RPAREN */
-#line 33 "prop.lemon.y"
+#line 34 "prop.lemon.y"
 {
 	yylhsminor.yy0 = yymsp[-1].minor.yy0;
 	FreeAstNode(pParse,yymsp[-2].minor.yy0);
 	FreeAstNode(pParse,yymsp[0].minor.yy0);
 }
-#line 889 "prop.lemon.c"
+#line 890 "prop.lemon.c"
   yymsp[-2].minor.yy0 = yylhsminor.yy0;
         break;
       case 3: /* expr ::= TK_NEG expr */
-#line 38 "prop.lemon.y"
+#line 39 "prop.lemon.y"
 {
 	yylhsminor.yy0 = NewNode(pParse);
 	SetNegExpr(pParse,yylhsminor.yy0,yymsp[0].minor.yy0);
 	FreeAstNode(pParse,yymsp[-1].minor.yy0);
 	
 }
-#line 900 "prop.lemon.c"
+#line 901 "prop.lemon.c"
   yymsp[-1].minor.yy0 = yylhsminor.yy0;
         break;
       case 4: /* expr ::= TK_SYM */
-#line 44 "prop.lemon.y"
+#line 45 "prop.lemon.y"
 { 
 	yylhsminor.yy0 = yymsp[0].minor.yy0;
 	SetSymb(pParse,yymsp[0].minor.yy0);
 	//PrintAst(pParse,yylhsminor.yy0);
 }
-#line 910 "prop.lemon.c"
+#line 911 "prop.lemon.c"
   yymsp[0].minor.yy0 = yylhsminor.yy0;
         break;
       default:
@@ -973,7 +974,7 @@ static void yy_syntax_error(
 
 printf(" Syntax error!\n");
 exit(0);
-#line 977 "prop.lemon.c"
+#line 978 "prop.lemon.c"
 /************ End %syntax_error code ******************************************/
   PropParseARG_STORE /* Suppress warning about unused %extra_argument variable */
   PropParseCTX_STORE

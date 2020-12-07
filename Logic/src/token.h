@@ -20,6 +20,11 @@ typedef unsigned short u16;
 #define PROP_NEG  2
 #define PROP_IMPL 3
 
+#define OP_IMPL 0
+#define OP_MP 1
+#define OP_HS 2
+#define OP_ADD 3
+
 #define log_a(format,...)   printf(format"\n",## __VA_ARGS__)
 #define log_c(format,...)   printf(format,## __VA_ARGS__)
 #define log_fun(format,...)  //printf(format"\n",## __VA_ARGS__)
@@ -33,6 +38,7 @@ struct TokenInfo{
     TokenInfo *pLeft;
     TokenInfo *pRight;
     TokenInfo *pTheorem;
+    u8 op;
     u8 type;
     u8 bSubst;
     u8 isRightTheorem;//1:右边是定理
@@ -61,9 +67,10 @@ void SetImplExpr(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB,
-        TokenInfo *pC);
+        TokenInfo *pC,
+        TokenInfo *pD);
 void FreeAstNode(AstParse *pParse,TokenInfo *p);
-void FreeAstTree(AstParse *pParse,TokenInfo **ppAst,TokenInfo **ppTemp);
+void FreeAstTree( AstParse *pParse,TokenInfo **ppAst,TokenInfo **ppTemp);
 void PrintAstAddr(AstParse *pParse,TokenInfo *pAst);
 void PrintSubstAst(AstParse *pParse,TokenInfo *pAst);
 TokenInfo *CopyAstTree(

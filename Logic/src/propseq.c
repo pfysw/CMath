@@ -14,18 +14,22 @@ TokenInfo * PropMpSeq(AstParse *pParse,
 {
     TokenInfo *pLeft;
     TokenInfo *pRight;
+    TokenInfo *pTemp;
     int iNum;
     static int cnt = 0;
     cnt++;
     assert(pSeq!=NULL);
     if( pSeq->type==PROP_SYMB )
     {
-        //iNum = pSeq->symb - 'A';
-        iNum = atoi(pSeq->zSymb)-1;
-        //assert(iNum<3);
-        pSeq->pTheorem = ppTest[iNum];
-//        log_c("L%d:",iNum+1);
-//        PrintSubstAst(pParse,pSeq->pTheorem);
+        if(pSeq->op!=OP_IMPL){
+            iNum = atoi(pSeq->zSymb)-1;
+            pSeq->pTheorem = ppTest[iNum];
+    //        log_c("L%d:",iNum+1);
+    //        PrintSubstAst(pParse,pSeq->pTheorem);
+        }
+        else{
+            pSeq->pTheorem = NULL;
+        }
         cnt--;
         return pSeq->pTheorem;
     }
@@ -41,9 +45,20 @@ TokenInfo * PropMpSeq(AstParse *pParse,
 #endif
         if(pLeft!=NULL&&pRight!=NULL)
         {
-            pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pLeft,pRight);
+            if(pSeq->op==OP_HS){
+                pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pRight,ppTest[0]);
+                pTemp = pSeq->pTheorem;
+                pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pTemp,ppTest[1]);
+                FreeAstTree(pParse,&pTemp,ppTemp);
+                pTemp = pSeq->pTheorem;
+                pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pLeft,pTemp);
+                FreeAstTree(pParse,&pTemp,ppTemp);
+            }
+            else{
+                pSeq->pTheorem = PropMpSubst(pParse,ppTemp,pLeft,pRight);
+            }
 #ifdef MP_DEBUG
-            log_a("mp");
+            log_a("mp %d",pSeq->op);
             PrintAst(pParse,pSeq->pTheorem);
 #endif
         }
@@ -56,7 +71,8 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         return pSeq->pTheorem;
     }
     else{
-        assert(0);
+       // assert(0);
+        return NULL;
     }
     cnt--;
     return NULL;

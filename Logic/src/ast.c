@@ -35,7 +35,13 @@ void PrintAst(AstParse *pParse,TokenInfo *pAst)
         assert(pAst->type==PROP_IMPL);
         log_c("(");
         PrintAst(pParse,pAst->pLeft);
-        log_c("->");
+        //log_c("->");
+        if(pAst->zSymb!=NULL){
+            log_c("%s",pAst->zSymb);
+        }
+        else{
+            log_c("->");
+        }
         PrintAst(pParse,pAst->pRight);
         log_c(")");
     }
@@ -92,40 +98,6 @@ void PrintSubstAst(AstParse *pParse,TokenInfo *pAst)
     }
 }
 
-
-
-void PrintAstAddr(AstParse *pParse,TokenInfo *pAst)
-{
-    static int cnt = 0;
-    cnt++;
-    assert(pAst!=NULL);
-    if( pAst->type==PROP_SYMB )
-    {
-        log_a("%c %p",pAst->symb,pAst);
-        //log_c("sym %s type %d",temp,pAst->type);
-    }
-    else if( pAst->type==PROP_NEG )
-    {
-        log_a("~");
-        PrintAstAddr(pParse,pAst->pLeft);
-        //log_a("left %s|%p",pAst->pLeft->zSymb,pAst->pLeft->zSymb);
-    }
-    else
-    {
-        assert(pAst->type==PROP_IMPL);
-        log_a("(");
-        PrintAstAddr(pParse,pAst->pLeft);
-        log_a("->");
-        PrintAstAddr(pParse,pAst->pRight);
-        log_a(")");
-    }
-    cnt--;
-    if(!cnt)
-    {
-        log_a("");
-    }
-}
-
 TokenInfo *NewNode(AstParse *pParse)
 {
     TokenInfo *p;
@@ -137,7 +109,7 @@ TokenInfo *NewNode(AstParse *pParse)
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
 {
-    if(p->type==PROP_SYMB)
+    if(p->type==PROP_SYMB || p->type==PROP_IMPL)
     {
         if(p->zSymb!=NULL){
             free(p->zSymb);
@@ -192,12 +164,13 @@ end:
     if(!cnt) n = 0;
 }
 
-void NewSymbString(TokenInfo *p)
+void NewSymbString(AstParse *pParse,TokenInfo *p)
 {
     char temp[100] = {0};
     assert(p->nSymbLen<10);
     memcpy(temp,p->zSymb,p->nSymbLen);
     p->zSymb = malloc(p->nSymbLen+1);
+    pParse->malloc_cnt++;
     memcpy(p->zSymb,temp,p->nSymbLen+1);
 }
 
@@ -212,9 +185,9 @@ void SetSymb(AstParse *pParse, TokenInfo *pB)
     memcpy(pB->zSymb,temp,pB->nSymbLen);
     log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
 #endif
-    NewSymbString(pB);
-    pParse->malloc_cnt++;
+    NewSymbString(pParse,pB);
     pB->type = PROP_SYMB;
+   // log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
 }
 
 void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)
@@ -228,11 +201,34 @@ void SetImplExpr(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB,
-        TokenInfo *pC)
+        TokenInfo *pC,
+        TokenInfo *pD)
 {
+    pA->zSymb = pD->zSymb;
+    pA->nSymbLen = pD->nSymbLen;
+    NewSymbString(pParse,pA);
     pA->type = PROP_IMPL;
+
     pA->pLeft = pB;
     pA->pRight = pC;
+    //printf("zSymb %s",pD->zSymb);
+    if(!strcmp(pD->zSymb,"->")){
+        pA->op = OP_IMPL;
+    }
+    else if(!strcmp(pD->zSymb,">")){
+        pA->op = OP_MP;
+    }
+    else if(!strcmp(pD->zSymb,">>")){
+        pA->op = OP_HS;
+    }
+    else if(!strcmp(pD->zSymb,"+")){
+        pA->op = OP_ADD;
+    }
+    else{
+        assert(0);
+    }
+    pB->op = pA->op;
+    pC->op = pA->op;
 }
 
 TokenInfo *CopyAstTree(
