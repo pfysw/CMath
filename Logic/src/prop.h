@@ -34,7 +34,6 @@ TokenInfo *  PropMpSubst(
         TokenInfo *pB);//定理
 TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo **ppTest,
-        TokenInfo **ppTemp,
         TokenInfo *pSeq);
 void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);

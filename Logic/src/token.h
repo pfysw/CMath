@@ -51,6 +51,7 @@ typedef struct AstParse AstParse;
 struct AstParse
 {
     TokenInfo *pRoot;
+    TokenInfo **ppTemp;//存在递归时的共享变量
     u8 bDiscard;
     int n;
     int axiom_num;

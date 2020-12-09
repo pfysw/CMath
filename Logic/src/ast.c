@@ -204,31 +204,33 @@ void SetImplExpr(
         TokenInfo *pC,
         TokenInfo *pD)
 {
-    pA->zSymb = pD->zSymb;
-    pA->nSymbLen = pD->nSymbLen;
-    NewSymbString(pParse,pA);
-    pA->type = PROP_IMPL;
+    if(pD!=NULL){
+        pA->zSymb = pD->zSymb;
+        pA->nSymbLen = pD->nSymbLen;
+        NewSymbString(pParse,pA);
+        //printf("zSymb %s",pD->zSymb);
+        if(!strcmp(pD->zSymb,"->")){
+            pA->op = OP_IMPL;
+        }
+        else if(!strcmp(pD->zSymb,">")){
+            pA->op = OP_MP;
+        }
+        else if(!strcmp(pD->zSymb,">>")){
+            pA->op = OP_HS;
+        }
+        else if(!strcmp(pD->zSymb,"+")){
+            pA->op = OP_ADD;
+        }
+        else{
+            assert(0);
+        }
+        pB->op = pA->op;
+        pC->op = pA->op;
+    }
 
+    pA->type = PROP_IMPL;
     pA->pLeft = pB;
     pA->pRight = pC;
-    //printf("zSymb %s",pD->zSymb);
-    if(!strcmp(pD->zSymb,"->")){
-        pA->op = OP_IMPL;
-    }
-    else if(!strcmp(pD->zSymb,">")){
-        pA->op = OP_MP;
-    }
-    else if(!strcmp(pD->zSymb,">>")){
-        pA->op = OP_HS;
-    }
-    else if(!strcmp(pD->zSymb,"+")){
-        pA->op = OP_ADD;
-    }
-    else{
-        assert(0);
-    }
-    pB->op = pA->op;
-    pC->op = pA->op;
 }
 
 TokenInfo *CopyAstTree(
