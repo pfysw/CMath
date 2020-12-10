@@ -25,7 +25,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
     assert(pSeq!=NULL);
     if( pSeq->type==PROP_SYMB )
     {
-        if(pSeq->op!=OP_IMPL){
+        if(pSeq->symb<='9' && pSeq->symb>'0'){
             iNum = atoi(pSeq->zSymb)-1;
             pSeq->pTheorem = ppTest[iNum];
     //        log_c("L%d:",iNum+1);

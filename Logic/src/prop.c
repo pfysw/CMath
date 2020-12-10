@@ -918,6 +918,10 @@ TokenInfo *  PropMpSubst(
         SetSameNode(pParse,&apCopy[1],ppTemp);
        // PrintSubstAst(pParse,apCopy[1]);
     }
+    else
+    {
+        log_a("MpSubst fail");
+    }
 
 end_insert:
     ClearSubstFlag(pParse,pA);

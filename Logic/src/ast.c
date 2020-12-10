@@ -224,8 +224,8 @@ void SetImplExpr(
         else{
             assert(0);
         }
-        pB->op = pA->op;
-        pC->op = pA->op;
+        //pB->op = pA->op;
+        //pC->op = pA->op;
     }
 
     pA->type = PROP_IMPL;

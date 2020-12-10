@@ -96,8 +96,7 @@ int main(int argc, char** argv) {
 
    //GenBasicProp(pParse);
   // SubstPropTest(pParse,ppTest);
-  // SubstSingleTest(pParse,ppTest);
- // SubstMpTest(pParse,ppTest);
+   //SubstSingleTest(pParse,theoremset.data);
    SubstMpTest(pParse,theoremset.data);
 
    yylex_destroy(scanner);
