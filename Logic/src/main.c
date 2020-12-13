@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "lex.yy.h"
-#include "token.h"
+#include "ast.h"
 #include "prop.h"
 
 extern Vector theoremset;
@@ -48,8 +48,9 @@ int main(int argc, char** argv) {
 
    InitTheoremSet();
    fd = BindScanFd(scanner,"in");
-   pParse = (AstParse *)malloc(sizeof(AstParse));
-   memset(pParse,0,sizeof(AstParse));
+//   pParse = (AstParse *)malloc(sizeof(AstParse));
+//   memset(pParse,0,sizeof(AstParse));
+   pParse = CreatAstParse();
    pToken = NewNode(pParse);
    token = yylex(scanner);
    zSymb = yyget_text(scanner);
@@ -98,7 +99,9 @@ int main(int argc, char** argv) {
   // SubstPropTest(pParse,ppTest);
    //SubstSingleTest(pParse,theoremset.data);
    SubstMpTest(pParse,theoremset.data);
-
+   for(int i=0;i<3;i++){
+       FreeAstNode(pParse,pParse->apAxiom[i]);
+   }
    yylex_destroy(scanner);
    PropParseFree(pLemon, free);
    fclose(fd);

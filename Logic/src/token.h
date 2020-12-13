@@ -43,40 +43,9 @@ struct TokenInfo{
     u8 bSubst;
     u8 isRightTheorem;//1:右边是定理
     u8 iRight;
+    u8 isDeduction;
     char symb;
     char copy;
 };
-
-typedef struct AstParse AstParse;
-struct AstParse
-{
-    TokenInfo *pRoot;
-    TokenInfo **ppTemp;//存在递归时的共享变量
-    u8 bDiscard;
-    int n;
-    int axiom_num;
-    int all_num;
-    int malloc_cnt;
-    int free_cnt;
-};
-
-void PrintAst(AstParse *pParse,TokenInfo *pAst);
-void SetSymb(AstParse *pParse,TokenInfo *pB);
-TokenInfo *NewNode(AstParse *pParse);
-void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB);
-void SetImplExpr(
-        AstParse *pParse,
-        TokenInfo *pA,
-        TokenInfo *pB,
-        TokenInfo *pC,
-        TokenInfo *pD);
-void FreeAstNode(AstParse *pParse,TokenInfo *p);
-void FreeAstTree( AstParse *pParse,TokenInfo **ppAst,TokenInfo **ppTemp);
-void PrintAstAddr(AstParse *pParse,TokenInfo *pAst);
-void PrintSubstAst(AstParse *pParse,TokenInfo *pAst);
-TokenInfo *CopyAstTree(
-        AstParse *pParse,
-        TokenInfo *pSrc,
-        u8 bSubst);
 
 #endif /* TOKEN_H_ */

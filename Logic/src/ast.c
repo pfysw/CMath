@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
+#include "ast.h"
 #include <assert.h>
 
 void PrintAst(AstParse *pParse,TokenInfo *pAst)
@@ -164,6 +164,21 @@ end:
     if(!cnt) n = 0;
 }
 
+AstParse *CreatAstParse(void){
+    AstParse *pParse;
+    char aNum[] = "123";
+    int i = 0;
+
+    pParse = (AstParse *)malloc(sizeof(AstParse));
+    memset(pParse,0,sizeof(AstParse));
+    for(i=0;i<3;i++){
+        pParse->apAxiom[i] = NewNode(pParse);
+        pParse->apAxiom[i]->symb = aNum[i];
+        pParse->apAxiom[i]->type = PROP_SYMB;
+    }
+
+    return pParse;
+}
 void NewSymbString(AstParse *pParse,TokenInfo *p)
 {
     char temp[100] = {0};
@@ -220,6 +235,7 @@ void SetImplExpr(
         }
         else if(!strcmp(pD->zSymb,"+")){
             pA->op = OP_ADD;
+            pA->isDeduction = 1;
         }
         else{
             assert(0);
@@ -231,6 +247,23 @@ void SetImplExpr(
     pA->type = PROP_IMPL;
     pA->pLeft = pB;
     pA->pRight = pC;
+    if(pB->isDeduction||pC->isDeduction)
+    {
+        pA->isDeduction = 1;
+    }
+}
+
+TokenInfo * NewMpNode(
+        AstParse *pParse,
+        TokenInfo *pB,
+        TokenInfo *pC)
+{
+    TokenInfo *pA =  NewNode(pParse);
+    SetImplExpr(pParse,pA,pB,pC,NULL);
+    pA->zSymb = ">";
+    pA->nSymbLen = 1;
+    NewSymbString(pParse,pA);
+    return pA;
 }
 
 TokenInfo *CopyAstTree(
@@ -239,8 +272,6 @@ TokenInfo *CopyAstTree(
         u8 bSubst)
 {
     TokenInfo *pDst;
-    TokenInfo *pTemp;
-    u32 testn;
 
     pDst = NewNode(pParse);
 
@@ -249,7 +280,6 @@ TokenInfo *CopyAstTree(
     {
         if( bSubst && pSrc->bSubst )
         {
-            pTemp = pSrc;
             if( pSrc->pSubst->type==PROP_SYMB  &&
                     !pSrc->pSubst->bSubst )
             {

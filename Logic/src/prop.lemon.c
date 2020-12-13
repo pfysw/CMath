@@ -30,7 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "token.h"
+#include "ast.h"
 #line 35 "prop.lemon.c"
 /**************** End of %include directives **********************************/
 /* These constants specify the various numeric values for terminal symbols

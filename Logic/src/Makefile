@@ -15,7 +15,7 @@ ${TARGET}: ${OBJ} ${OBJ_DIR}/prop.lemon.o
 	@echo "Compile done."
     
 
-${OBJ_DIR}/%.o:%.c lex.yy.h token.h
+${OBJ_DIR}/%.o:%.c lex.yy.h token.h ast.h
 	@echo "Compiling $< ==> $@"
 	${CC} ${CCFLAGS} -c $< -o $@
 
@@ -24,7 +24,7 @@ ${OBJ_DIR}/prop.lemon.o:prop.lemon.c
 lex.yy.c lex.yy.h:prop.lex.l 
 	flex --header-file=lex.yy.h prop.lex.l 
 
-token.h:prop.lemon.h
+token.h ast.h:prop.lemon.h
 
 prop.lemon.c prop.lemon.h:prop.lemon.y
 	${CC} ${CCFLAGS} ../lemon.c -o ../lemon

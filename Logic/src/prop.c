@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "token.h"
+#include "ast.h"
 #include <assert.h>
 #include "prop.h"
 
@@ -869,14 +869,13 @@ end_insert:
 
 TokenInfo *  PropMpSubst(
         AstParse *pParse,
-        TokenInfo **ppTemp,
         TokenInfo *pA,//条件
         TokenInfo *pB)//定理
 {
     int rc = 0;
     int k;
     TokenInfo *apCopy[5] = {0};
-
+    TokenInfo **ppTemp = pParse->ppTemp;
     SetSameNode(pParse,&pA,ppTemp);
     SetSameNode(pParse,&pB,ppTemp);
     if(pA==pB)

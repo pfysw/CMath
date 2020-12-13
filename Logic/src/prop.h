@@ -7,7 +7,7 @@
 
 #ifndef PROP_H_
 #define PROP_H_
-#include "token.h"
+#include "ast.h"
 
 extern int axiom_num;
 
@@ -29,7 +29,6 @@ void  SubstPropTest(
         TokenInfo **ppTest);
 TokenInfo *  PropMpSubst(
         AstParse *pParse,
-        TokenInfo **ppTemp,
         TokenInfo *pA,//条件
         TokenInfo *pB);//定理
 TokenInfo * PropMpSeq(AstParse *pParse,
@@ -39,5 +38,9 @@ void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);
 void InitTheoremSet(void);
 void InsertVector(Vector *pV,TokenInfo *pData);
+int SetSameNode(
+        AstParse *pParse,
+        TokenInfo **ppAst,
+        TokenInfo **ppTemp);
 
 #endif /* PROP_H_ */
