@@ -38,6 +38,7 @@ struct TokenInfo{
     TokenInfo *pLeft;
     TokenInfo *pRight;
     TokenInfo *pTheorem;
+    TokenInfo *pDeduce;
     u8 op;
     u8 type;
     u8 bSubst;

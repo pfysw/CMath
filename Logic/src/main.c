@@ -60,14 +60,14 @@ int main(int argc, char** argv) {
        pToken->zSymb = zSymb;//yyget_text(scanner);
        pToken->nSymbLen = yyget_leng(scanner);
        pToken->symb = pToken->zSymb[0];
-       //printf("tocken %d %s \n",token,pToken->zSymb);
+     //  printf("tocken %d %s \n",token,pToken->zSymb);
        PropParse(pLemon, token, pToken,pParse);
 
        if( token==TK_SEM )
        {
            PropParse(pLemon, 0, 0,pParse);
-//           log_a("----- %d -----",idx);
-//           PrintAst(pParse,pParse->pRoot);
+           log_a("----- %d -----",idx);
+           PrintAst(pParse,pParse->pRoot);
            //ppTest[idx++] = pParse->pRoot;
            idx++;
            InsertVector(&theoremset,pParse->pRoot);
@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
 	   if( token )
 	   {
 	       zSymb = yyget_text(scanner);
+	       //printf("zSymb %s\n",zSymb);
            if(!memcmp(zSymb,"formula",7)){
                 pParse->axiom_num = idx;
                 token = yylex(scanner);//jump formula
@@ -83,7 +84,6 @@ int main(int argc, char** argv) {
                 zSymb = yyget_text(scanner);
            }
            else if(!memcmp(zSymb,"end",3)){
-               assert(pToken->symb==';');
 	           pParse->all_num = idx;
 	           break;
 	       }

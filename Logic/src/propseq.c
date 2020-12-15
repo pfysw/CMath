@@ -75,7 +75,8 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             }
         }
         else{
-            //PropAdd(pParse,ppTest,pSeq);
+//            pSeq->pDeduce = PropAdd(pParse,ppTest,pSeq);
+//            pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
         }
         cnt--;
         return pSeq->pTheorem;
@@ -103,7 +104,6 @@ TokenInfo * PropAdd(
     TokenInfo *apCopy[5] = {0};
     TokenInfo **ppTemp = pParse->ppTemp;
     TokenInfo **ppAxiom = pParse->apAxiom;
-    char aNum[] = "123";
 
     assert(pSeq->op==OP_ADD);
     if(pSeq->pRight->type==PROP_SYMB){
@@ -168,7 +168,7 @@ TokenInfo * PropAdd(
     case OP_ADD:
         apCopy[0] = PropAdd(pParse,ppTest,pSeq->pRight);
         pNl = NewImplyNode(pParse,pSeq->pLeft,apCopy[0]->pLeft,">");
-        apCopy[1] = NewMpNode(pParse,pSeq->pLeft,apCopy[0]->pRight);
+        apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0]->pRight,"+");
         pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
         pR = NewImplyNode(pParse,pNl,pNr,">");
         break;
