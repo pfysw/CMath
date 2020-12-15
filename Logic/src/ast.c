@@ -266,6 +266,15 @@ TokenInfo * NewImplyNode(
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
     NewSymbString(pParse,pA);
+    if(!strcmp(zSymb,">")){
+        pA->op = OP_MP;
+    }
+    else if(!strcmp(zSymb,">>")){
+        pA->op = OP_HS;
+    }
+    else if(!strcmp(zSymb,"+")){
+        pA->op = OP_ADD;
+    }
     return pA;
 }
 

@@ -75,8 +75,8 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             }
         }
         else{
-//            pSeq->pDeduce = PropAdd(pParse,ppTest,pSeq);
-//            pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
+            pSeq->pDeduce = PropAdd(pParse,ppTest,pSeq);
+            pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
         }
         cnt--;
         return pSeq->pTheorem;
@@ -104,6 +104,9 @@ TokenInfo * PropAdd(
     TokenInfo *apCopy[5] = {0};
     TokenInfo **ppTemp = pParse->ppTemp;
     TokenInfo **ppAxiom = pParse->apAxiom;
+    if(pSeq->op!=OP_ADD){
+        printf("ss\n");
+    }
 
     assert(pSeq->op==OP_ADD);
     if(pSeq->pRight->type==PROP_SYMB){
