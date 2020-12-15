@@ -42,13 +42,10 @@ TokenInfo *CopyAstTree(
         TokenInfo *pSrc,
         u8 bSubst);
 AstParse *CreatAstParse(void);
-TokenInfo * NewMpNode(
+TokenInfo * NewImplyNode(
         AstParse *pParse,
         TokenInfo *pB,
-        TokenInfo *pC);
-TokenInfo * NewAddNode(
-        AstParse *pParse,
-        TokenInfo *pB,
-        TokenInfo *pC);
+        TokenInfo *pC,
+        char *zSymb);
 
 #endif /* AST_H_ */

@@ -255,28 +255,16 @@ void SetImplExpr(
     }
 }
 
-TokenInfo * NewMpNode(
+TokenInfo * NewImplyNode(
         AstParse *pParse,
         TokenInfo *pB,
-        TokenInfo *pC)
+        TokenInfo *pC,
+        char *zSymb)
 {
     TokenInfo *pA =  NewNode(pParse);
     SetImplExpr(pParse,pA,pB,pC,NULL);
-    pA->zSymb = ">";
-    pA->nSymbLen = 1;
-    NewSymbString(pParse,pA);
-    return pA;
-}
-
-TokenInfo * NewAddNode(
-        AstParse *pParse,
-        TokenInfo *pB,
-        TokenInfo *pC)
-{
-    TokenInfo *pA =  NewNode(pParse);
-    SetImplExpr(pParse,pA,pB,pC,NULL);
-    pA->zSymb = "+";
-    pA->nSymbLen = 1;
+    pA->zSymb = zSymb;
+    pA->nSymbLen = strlen(zSymb);
     NewSymbString(pParse,pA);
     return pA;
 }
