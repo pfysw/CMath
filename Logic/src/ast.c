@@ -202,6 +202,9 @@ void SetSymb(AstParse *pParse, TokenInfo *pB)
 #endif
     NewSymbString(pParse,pB);
     pB->type = PROP_SYMB;
+    if(pB->symb>'9'){
+        pB->isDeduction = 1;
+    }
    // log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
 }
 
@@ -235,7 +238,6 @@ void SetImplExpr(
         }
         else if(!strcmp(pD->zSymb,"+")){
             pA->op = OP_ADD;
-            pA->isDeduction = 1;
         }
         else{
             assert(0);
@@ -265,6 +267,20 @@ TokenInfo * NewMpNode(
     NewSymbString(pParse,pA);
     return pA;
 }
+
+TokenInfo * NewAddNode(
+        AstParse *pParse,
+        TokenInfo *pB,
+        TokenInfo *pC)
+{
+    TokenInfo *pA =  NewNode(pParse);
+    SetImplExpr(pParse,pA,pB,pC,NULL);
+    pA->zSymb = "+";
+    pA->nSymbLen = 1;
+    NewSymbString(pParse,pA);
+    return pA;
+}
+
 
 TokenInfo *CopyAstTree(
         AstParse *pParse,
