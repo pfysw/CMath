@@ -5,7 +5,7 @@
 #include <assert.h>
 #include "prop.h"
 
-//#define MP_DEBUG
+#define MP_DEBUG
 
 TokenInfo * PropAdd(AstParse *pParse,
         TokenInfo **ppTest,
@@ -104,9 +104,9 @@ TokenInfo * PropAdd(
     TokenInfo *apCopy[5] = {0};
     TokenInfo **ppTemp = pParse->ppTemp;
     TokenInfo **ppAxiom = pParse->apAxiom;
-    if(pSeq->op!=OP_ADD){
-        printf("ss\n");
-    }
+//    if(pSeq->op!=OP_ADD){
+//        printf("ss\n");
+//    }
 
     assert(pSeq->op==OP_ADD);
     if(pSeq->pRight->type==PROP_SYMB){
@@ -157,7 +157,7 @@ TokenInfo * PropAdd(
         }
         else{
             apCopy[4] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
-            pNl = PropAdd(pParse,ppTest,apCopy[0]);
+            pNl = PropAdd(pParse,ppTest,apCopy[4]);
             apCopy[0] = NewImplyNode(pParse,pRr,ppAxiom[0],">");//todo 要不要释放
             apCopy[1] = NewImplyNode(pParse,apCopy[0],ppAxiom[1],">");
             apCopy[2] = NewImplyNode(pParse,pSeq->pLeft,apCopy[1],"+");

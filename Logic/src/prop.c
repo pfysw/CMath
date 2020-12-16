@@ -63,7 +63,9 @@ RefTable aRefTable[100] =
 u8 isEqualNode(TokenInfo *pA,TokenInfo *pB)
 {
     u8 rc = 0;
-    if( pA->symb == pB->symb )
+    //if(!strcmp(pA->zSymb,pB->zSymb))//CopyAstTree并没拷贝zSymb
+    //演绎定理中既有数字又有字母，只把字母设为相同
+    if(pA->symb==pB->symb && pA->symb>'9')
     {
         rc = 1;
     }
@@ -1134,7 +1136,6 @@ void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest)
 void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
 {
     int i;
-    int n;
     TokenInfo *ppTemp[100];//存在递归时的共享变量
     TokenInfo *pR;//
 
@@ -1149,7 +1150,13 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     for(i=3;i<pParse->all_num;i++)
     {
         log_a("old i %d",i+1);
+        if(i==18){
+            printf("ss:%d\n",i+1);
+        }
         PrintAst(pParse,ppTest[i]);
+        if(ppTest[i]->isDeduction){
+            SetSameNode(pParse,&ppTest[i],ppTemp);
+        }
         pR = PropMpSeq(pParse,ppTest,ppTest[i]);
         if(pR!=NULL){
             pR = CopyAstTree(pParse,pR,0);
