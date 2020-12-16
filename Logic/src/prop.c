@@ -900,7 +900,7 @@ TokenInfo *  PropMpSubst(
         int n,m;
 
         m = GetAllNode(pParse,&pB->pRight,ppTemp);
-        if( m>10 ) {
+        if( m>15 ) {
             printf("GetAllNode num %d\n",m);
             goto end_insert;
         }

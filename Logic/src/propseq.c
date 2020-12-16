@@ -5,7 +5,7 @@
 #include <assert.h>
 #include "prop.h"
 
-#define MP_DEBUG
+//#define MP_DEBUG
 
 TokenInfo * PropAdd(AstParse *pParse,
         TokenInfo **ppTest,
@@ -26,6 +26,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
     if( pSeq->type==PROP_SYMB )
     {
         if(pSeq->symb<='9' && pSeq->symb>'0'){
+            assert(pSeq->zSymb!=NULL);
             iNum = atoi(pSeq->zSymb)-1;
             pSeq->pTheorem = ppTest[iNum];
     //        log_c("L%d:",iNum+1);
@@ -118,6 +119,10 @@ TokenInfo * PropAdd(
         else{
             pR = NewImplyNode(pParse,pSeq->pRight,ppAxiom[0],">");
         }
+#ifdef MP_DEBUG
+        log_a("add pR");
+        PrintAst(pParse,pR);
+#endif
         return pR;
     }
     assert(pSeq->pRight->type==PROP_IMPL);
@@ -138,9 +143,8 @@ TokenInfo * PropAdd(
             apCopy[2] = PropAdd(pParse,ppTest,apCopy[1]);
             pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
-
-            FreeAstTree(pParse,&apCopy[0],ppTemp);
-            FreeAstTree(pParse,&apCopy[1],ppTemp);
+            FreeAstNode(pParse,apCopy[0]);
+            FreeAstNode(pParse,apCopy[1]);
         }
         break;
     case OP_HS:
@@ -164,8 +168,8 @@ TokenInfo * PropAdd(
             apCopy[3] = PropAdd(pParse,ppTest,apCopy[2]);
             pNr = NewImplyNode(pParse,apCopy[3],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[3]都作为pR的子结点
-            FreeAstTree(pParse,&apCopy[4],ppTemp);
-            FreeAstTree(pParse,&apCopy[2],ppTemp);
+            FreeAstNode(pParse,apCopy[4]);
+            FreeAstNode(pParse,apCopy[2]);
         }
         break;
     case OP_ADD:
@@ -179,6 +183,10 @@ TokenInfo * PropAdd(
         assert(0);
         break;
     }
+#ifdef MP_DEBUG
+        log_a("add pR");
+        PrintAst(pParse,pR);
+#endif
     return pR;
 }
 

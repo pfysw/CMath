@@ -164,21 +164,6 @@ end:
     if(!cnt) n = 0;
 }
 
-AstParse *CreatAstParse(void){
-    AstParse *pParse;
-    char aNum[] = "123";
-    int i = 0;
-
-    pParse = (AstParse *)malloc(sizeof(AstParse));
-    memset(pParse,0,sizeof(AstParse));
-    for(i=0;i<3;i++){
-        pParse->apAxiom[i] = NewNode(pParse);
-        pParse->apAxiom[i]->symb = aNum[i];
-        pParse->apAxiom[i]->type = PROP_SYMB;
-    }
-
-    return pParse;
-}
 void NewSymbString(AstParse *pParse,TokenInfo *p)
 {
     char temp[100] = {0};
@@ -206,6 +191,25 @@ void SetSymb(AstParse *pParse, TokenInfo *pB)
         pB->isDeduction = 1;
     }
    // log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
+}
+
+AstParse *CreatAstParse(void){
+    AstParse *pParse;
+    char aNum[] = "123";
+    int i = 0;
+
+    pParse = (AstParse *)malloc(sizeof(AstParse));
+    memset(pParse,0,sizeof(AstParse));
+    for(i=0;i<3;i++){
+        pParse->apAxiom[i] = NewNode(pParse);
+        pParse->apAxiom[i]->symb = aNum[i];
+        pParse->apAxiom[i]->type = PROP_SYMB;
+        pParse->apAxiom[i]->zSymb = &aNum[i];
+        pParse->apAxiom[i]->nSymbLen = 1;
+        NewSymbString(pParse,pParse->apAxiom[i]);
+    }
+
+    return pParse;
 }
 
 void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)
