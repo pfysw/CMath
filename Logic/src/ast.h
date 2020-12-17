@@ -21,6 +21,7 @@ struct AstParse
     int all_num;
     int malloc_cnt;
     int free_cnt;
+    int test;
 };
 
 void PrintAst(AstParse *pParse,TokenInfo *pAst);

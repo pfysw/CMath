@@ -75,6 +75,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             log_a("add pDeduce %d",cnt);
             PrintAst(pParse,pSeq->pDeduce);
             pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
+            //FreeNewImplyNodes(pParse,&pSeq->pDeduce);
         }
         cnt--;
         return pSeq->pTheorem;

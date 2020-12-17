@@ -104,7 +104,8 @@ TokenInfo *NewNode(AstParse *pParse)
     p = (TokenInfo *)malloc(sizeof(TokenInfo));
     pParse->malloc_cnt++;
     memset(p,0,sizeof(TokenInfo));
-
+    //if(pParse->malloc_cnt==2132)
+    printf("newnode %d\n",pParse->malloc_cnt);
     return p;
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
@@ -174,7 +175,10 @@ void FreeNewImplyNodes(AstParse *pParse,TokenInfo **ppAst)
     {
         FreeNewImplyNodes(pParse,&((*ppAst)->pLeft));
         FreeNewImplyNodes(pParse,&((*ppAst)->pRight));
-        FreeAstNode(pParse,(*ppAst));
+        if((*ppAst)->isNewTemp){
+            FreeAstNode(pParse,(*ppAst));
+        }
+        *ppAst = NULL;
     }
 
 }
@@ -187,6 +191,7 @@ void NewSymbString(AstParse *pParse,TokenInfo *p)
     p->zSymb = malloc(p->nSymbLen+1);
     pParse->malloc_cnt++;
     memcpy(p->zSymb,temp,p->nSymbLen+1);
+    printf("symb %d\n",pParse->malloc_cnt);
 }
 
 void SetSymb(AstParse *pParse, TokenInfo *pB)
@@ -282,6 +287,7 @@ TokenInfo * NewImplyNode(
         char *zSymb)
 {
     TokenInfo *pA =  NewNode(pParse);
+    printf("new \n");
     SetImplExpr(pParse,pA,pB,pC,NULL);
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
@@ -295,6 +301,9 @@ TokenInfo * NewImplyNode(
     else if(!strcmp(zSymb,"+")){
         pA->op = OP_ADD;
     }
+    pA->isNewTemp = 1;
+    pParse->test += 2;
+    printf("end %d\n",pParse->test);
     return pA;
 }
 
