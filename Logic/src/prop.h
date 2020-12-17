@@ -42,5 +42,6 @@ int SetSameNode(
         AstParse *pParse,
         TokenInfo **ppAst,
         TokenInfo **ppTemp);
+int isChildProp(AstParse *pParse,TokenInfo *pProp,TokenInfo *pSym);
 
 #endif /* PROP_H_ */

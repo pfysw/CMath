@@ -109,6 +109,7 @@ int main(int argc, char** argv) {
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
 
+   printf("%ld\n",sizeof(TokenInfo));
    return 0;
 }
 

@@ -144,6 +144,8 @@ void FreeAstTree(
     if( (*ppAst)->type==PROP_SYMB )
     {
         FreeAstNode(pParse,(*ppAst));
+        assert(n<90);
+        ppTemp[n++] = *ppAst;
     }
     else if( (*ppAst)->type==PROP_NEG )
     {
@@ -157,11 +159,24 @@ void FreeAstTree(
         FreeAstTree(pParse,&((*ppAst)->pRight),ppTemp);
         FreeAstNode(pParse,(*ppAst));
     }
-    ppTemp[n++] = *ppAst;
+
 end:
     *ppAst = NULL;
     cnt--;
     if(!cnt) n = 0;
+}
+
+void FreeNewImplyNodes(AstParse *pParse,TokenInfo **ppAst)
+{
+    assert((*ppAst)!=NULL);
+
+    if((*ppAst)->type==PROP_IMPL)
+    {
+        FreeNewImplyNodes(pParse,&((*ppAst)->pLeft));
+        FreeNewImplyNodes(pParse,&((*ppAst)->pRight));
+        FreeAstNode(pParse,(*ppAst));
+    }
+
 }
 
 void NewSymbString(AstParse *pParse,TokenInfo *p)

@@ -1155,7 +1155,9 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         }
         PrintAst(pParse,ppTest[i]);
         if(ppTest[i]->isDeduction){
-            SetSameNode(pParse,&ppTest[i],ppTemp);
+            int n = 0;
+            n = SetSameNode(pParse,&ppTest[i],ppTemp);
+            printf("n same %d\n",n);
         }
         pR = PropMpSeq(pParse,ppTest,ppTest[i]);
         if(pR!=NULL){

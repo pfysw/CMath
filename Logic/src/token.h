@@ -44,7 +44,8 @@ struct TokenInfo{
     u8 bSubst;
     u8 isRightTheorem;//1:右边是定理
     u8 iRight;
-    u8 isDeduction;
+    u8 isDeduction:4;
+    u8 isNewTemp:4;
     char symb;
     char copy;
 };
