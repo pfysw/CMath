@@ -4,12 +4,7 @@
 #include "ast.h"
 #include <assert.h>
 #include "prop.h"
-
-//#define MP_DEBUG
-
-TokenInfo * PropAdd(AstParse *pParse,
-        TokenInfo **ppTest,
-        TokenInfo *pSeq);
+#include "propseq.h"
 
 TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo **ppTest,
@@ -105,11 +100,7 @@ TokenInfo * PropAdd(
     TokenInfo *pNr;
     TokenInfo *pR;
     TokenInfo *apCopy[5] = {0};
-    //TokenInfo **ppTemp = pParse->ppTemp;
     TokenInfo **ppAxiom = pParse->apAxiom;
-//    if(pSeq->op!=OP_ADD){
-//        printf("ss\n");
-//    }
     static int cnt = 0;
     cnt++;
 
@@ -122,7 +113,7 @@ TokenInfo * PropAdd(
         else{
             pR = NewImplyNode(pParse,pSeq->pRight,ppAxiom[0],">");
         }
-#ifdef MP_DEBUG
+#ifdef ADD_DEBUG
         log_a("add pR");
         PrintAst(pParse,pR);
 #endif
@@ -130,89 +121,115 @@ TokenInfo * PropAdd(
         return pR;
     }
     assert(pSeq->pRight->type==PROP_IMPL);
-    pRl = pSeq->pRight->pLeft;
-    pRr = pSeq->pRight->pRight;
-    switch(pSeq->pRight->op)
+    if(pSeq->pRight->isDeduction && pSeq->pRight->op!=OP_ADD)
     {
-    case OP_MP:
-        //if(pSeq->pLeft==pRl && !pRr->isDeduction )
-        if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
-        {
-            pR = pRr;
-#ifdef MP_DEBUG
-            log_a("add pR1 %d",cnt);
-            PrintAst(pParse,pR);
-#endif
-        }
-        else
-        {
-            apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
-#ifdef MP_DEBUG
-            log_a("add left %d",cnt);
-            PrintAst(pParse,apCopy[0]);
-#endif
-            pNl = PropAdd(pParse,ppTest,apCopy[0]);
-            apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,pRr,"+");
-#ifdef MP_DEBUG
-            log_a("add right %d",cnt);
-            PrintAst(pParse,apCopy[1]);
-#endif
-            apCopy[2] = PropAdd(pParse,ppTest,apCopy[1]);
-            pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
-            pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
-            FreeAstNode(pParse,apCopy[0]);
-            FreeAstNode(pParse,apCopy[1]);
-#ifdef MP_DEBUG
-            log_a("add pR2 %d",cnt);
-            PrintAst(pParse,pR);
-#endif
-        }
-        break;
-    case OP_HS:
-        //if(pSeq->pLeft==pRl && !pRr->isDeduction )
-        if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
-        {
-            apCopy[0] = NewImplyNode(pParse,pRr,ppAxiom[0],">");
-            pR = NewImplyNode(pParse,apCopy[0],ppAxiom[1],">");;
-        }
-        else if(pSeq->pLeft==pRr){
-            apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
-            pNl = PropAdd(pParse,ppTest,apCopy[0]);
-            apCopy[1] = NewImplyNode(pParse,ppAxiom[0],ppAxiom[1],">>");
-            pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
-            pR = NewImplyNode(pParse,pNl,pNr,">");
-        }
-        else{
-            apCopy[4] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
-            pNl = PropAdd(pParse,ppTest,apCopy[4]);
-            apCopy[0] = NewImplyNode(pParse,pRr,ppAxiom[0],">");//todo 要不要释放
-            apCopy[1] = NewImplyNode(pParse,apCopy[0],ppAxiom[1],">");
-            apCopy[2] = NewImplyNode(pParse,pSeq->pLeft,apCopy[1],"+");
-            apCopy[3] = PropAdd(pParse,ppTest,apCopy[2]);
-            pNr = NewImplyNode(pParse,apCopy[3],ppAxiom[1],">");
-            pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[3]都作为pR的子结点
-            FreeAstNode(pParse,apCopy[4]);
-            FreeAstNode(pParse,apCopy[2]);
-        }
-        break;
-    case OP_ADD:
-        apCopy[0] = PropAdd(pParse,ppTest,pSeq->pRight);
-        apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0],"+");
-        pR =  PropAdd(pParse,ppTest,apCopy[1]);
-//        pNl = NewImplyNode(pParse,pSeq->pLeft,apCopy[0]->pLeft,">");
-//        apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0]->pRight,"+");
-//        pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
-//        pR = NewImplyNode(pParse,pNl,pNr,">");
-        break;
-    default:
-        assert(0);
-        break;
+        pR = PropRemoveAdd(pParse,ppTest,pSeq->pRight);
     }
-#ifdef MP_DEBUG
+    else
+    {
+        pRl = pSeq->pRight->pLeft;
+        pRr = pSeq->pRight->pRight;
+        switch(pSeq->pRight->op)
+        {
+        case OP_MP:
+            //if(pSeq->pLeft==pRl && !pRr->isDeduction )
+            if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
+            {
+                pR = pRr;
+    #ifdef ADD_DEBUG
+                log_a("add pR1 %d",cnt);
+                PrintAst(pParse,pR);
+    #endif
+            }
+            else
+            {
+                apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
+    #ifdef ADD_DEBUG
+                log_a("add left %d",cnt);
+                PrintAst(pParse,apCopy[0]);
+    #endif
+                pNl = PropAdd(pParse,ppTest,apCopy[0]);
+                apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,pRr,"+");
+    #ifdef ADD_DEBUG
+                log_a("add right %d",cnt);
+                PrintAst(pParse,apCopy[1]);
+    #endif
+                apCopy[2] = PropAdd(pParse,ppTest,apCopy[1]);
+                pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
+                pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
+                FreeAstNode(pParse,apCopy[0]);
+                FreeAstNode(pParse,apCopy[1]);
+    #ifdef ADD_DEBUG
+                log_a("add pR2 %d",cnt);
+                PrintAst(pParse,pR);
+    #endif
+            }
+            break;
+        case OP_HS:
+            //if(pSeq->pLeft==pRl && !pRr->isDeduction )
+            if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
+            {
+                apCopy[0] = NewImplyNode(pParse,pRr,ppAxiom[0],">");
+                pR = NewImplyNode(pParse,apCopy[0],ppAxiom[1],">");;
+            }
+            else if(pSeq->pLeft==pRr){
+                apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
+                pNl = PropAdd(pParse,ppTest,apCopy[0]);
+                apCopy[1] = NewImplyNode(pParse,ppAxiom[0],ppAxiom[1],">>");
+                pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
+                pR = NewImplyNode(pParse,pNl,pNr,">");
+            }
+            else{
+                apCopy[4] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
+                pNl = PropAdd(pParse,ppTest,apCopy[4]);
+                apCopy[0] = NewImplyNode(pParse,pRr,ppAxiom[0],">");//todo 要不要释放
+                apCopy[1] = NewImplyNode(pParse,apCopy[0],ppAxiom[1],">");
+                apCopy[2] = NewImplyNode(pParse,pSeq->pLeft,apCopy[1],"+");
+                apCopy[3] = PropAdd(pParse,ppTest,apCopy[2]);
+                pNr = NewImplyNode(pParse,apCopy[3],ppAxiom[1],">");
+                pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[3]都作为pR的子结点
+                FreeAstNode(pParse,apCopy[4]);
+                FreeAstNode(pParse,apCopy[2]);
+            }
+            break;
+        case OP_ADD:
+            assert(0);//此分支放在了PropRemoveAdd
+            apCopy[0] = PropAdd(pParse,ppTest,pSeq->pRight);
+            apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0],"+");
+            pR =  PropAdd(pParse,ppTest,apCopy[1]);
+            break;
+        default:
+            assert(0);
+            break;
+        }
+    }
+#ifdef ADD_DEBUG
         log_a("add pR");
         PrintAst(pParse,pR);
 #endif
     cnt--;
+    return pR;
+}
+
+TokenInfo * PropRemoveAdd(
+        AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo *pSeq)
+{
+    assert(pSeq->type==PROP_IMPL);
+
+    TokenInfo *pRl;
+    TokenInfo *pRr;
+    TokenInfo *pNl;
+    TokenInfo *pNr;
+    TokenInfo *pR;
+    TokenInfo *apCopy[5] = {0};
+    TokenInfo **ppAxiom = pParse->apAxiom;
+
+    assert(pSeq->op!=OP_ADD);
+    apCopy[0] = PropRemoveAdd(pParse,ppTest,pSeq->pLeft);
+    apCopy[1] = PropRemoveAdd(pParse,ppTest,pSeq->pRight);
+    pR = NewImplyNode(pParse,apCopy[0],apCopy[1],pSeq->zSymb);
     return pR;
 }
 
