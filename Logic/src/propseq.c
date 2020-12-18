@@ -144,6 +144,9 @@ TokenInfo * PropAdd(
         //if(pSeq->pLeft==pRl && !pRr->isDeduction )
         if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
         {
+            if(pRight->isNewTemp){
+                FreeAstNode(pParse,pRight);
+            }
             pR = pRr;
 #ifdef ADD_DEBUG
             log_a("add pR1 %d",cnt);
@@ -155,6 +158,10 @@ TokenInfo * PropAdd(
         }
         else
         {
+            if(pRight->isNewTemp){
+                printf("no free %d\n",pRight->malloc_flag);
+                PrintAst(pParse,pRight);
+            }
             apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
 #ifdef ADD_DEBUG
             log_a("add left %d",cnt);
@@ -169,8 +176,14 @@ TokenInfo * PropAdd(
             apCopy[2] = PropAdd(pParse,ppTest,apCopy[1]);
             pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
+            if(pRight->isNewTemp){
+                printf("no freea %d\n",pRight->malloc_flag);
+                PrintAst(pParse,pRight);
+                FreeAstNode(pParse,pRight);
+            }
             FreeAstNode(pParse,apCopy[0]);
             FreeAstNode(pParse,apCopy[1]);
+
 #ifdef ADD_DEBUG
             log_a("add pR2 %d",cnt);
             PrintAst(pParse,pR);
@@ -212,6 +225,8 @@ TokenInfo * PropAdd(
         apCopy[0] = PropAdd(pParse,ppTest,pSeq->pRight);
         apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0],"+");
         pR =  PropAdd(pParse,ppTest,apCopy[1]);
+        //FreeAstNode(pParse,apCopy[0]); //in mp pSeq->pRight free
+        FreeAstNode(pParse,apCopy[1]);
         break;
     default:
         assert(0);

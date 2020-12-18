@@ -109,13 +109,14 @@ TokenInfo *NewNode(AstParse *pParse)
    // printf("newnode %d\n",pParse->malloc_cnt);
     p->malloc_flag = pParse->malloc_cnt;
     testbuf[pParse->malloc_cnt] = 1;
-    if(pParse->malloc_cnt==2264){
+    if(pParse->malloc_cnt==2282){
         printf("newnode %d\n",pParse->malloc_cnt);
     }
     return p;
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
 {
+    assert(p!=NULL);
     if(p->type==PROP_SYMB || p->type==PROP_IMPL)
     {
         if(p->zSymb!=NULL){
@@ -128,6 +129,9 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
    // log_a("free %s",p->zSymb);
     pParse->free_cnt++;
     testbuf[p->malloc_flag] = 0;
+    if(p->malloc_flag==2282){
+        log_a("free");
+    }
     free(p);
 }
 
