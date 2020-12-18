@@ -14,7 +14,11 @@ u8 testbuf[10000] = {0};
 void PrintAst(AstParse *pParse,TokenInfo *pAst)
 {
     static int cnt = 0;
+    static int nPrintSymb = 0;
     cnt++;
+    if(cnt==1){
+        nPrintSymb = 0;
+    }
     assert(pAst!=NULL);
     if( pAst->type==PROP_SYMB )
     {
@@ -24,7 +28,7 @@ void PrintAst(AstParse *pParse,TokenInfo *pAst)
         else{
             log_c("%c",pAst->symb);
         }
-
+        nPrintSymb++;
     }
     else if( pAst->type==PROP_NEG )
     {
@@ -43,13 +47,18 @@ void PrintAst(AstParse *pParse,TokenInfo *pAst)
         else{
             log_c("->");
         }
+        if(nPrintSymb%10==0){
+            log_a("");
+        }
         PrintAst(pParse,pAst->pRight);
         log_c(")");
+
     }
     cnt--;
     if(!cnt)
     {
         log_a("");
+        nPrintSymb = 0;
     }
 }
 
