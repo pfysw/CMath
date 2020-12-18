@@ -108,7 +108,12 @@ int main(int argc, char** argv) {
    //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
-
+   extern u8 testbuf[10000];
+   for(int i=0;i<pParse->malloc_cnt;i++){
+       if(testbuf[i]){
+           printf("not free %d\n",i);
+       }
+   }
    log_a("add malloc %d",pParse->test);
    printf("%ld\n",sizeof(TokenInfo));
    return 0;

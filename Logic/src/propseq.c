@@ -75,7 +75,10 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             log_a("add pDeduce %d",cnt);
             PrintAst(pParse,pSeq->pDeduce);
             pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
-            //FreeNewImplyNodes(pParse,&pSeq->pDeduce);
+            pTemp = CopyAstTree(pParse,pSeq->pTheorem,0);
+            FreePropSeq(pParse,pSeq->pDeduce,ppTemp);
+            FreeNewImplyNodes(pParse,&pSeq->pDeduce);
+            pSeq->pTheorem = pTemp;
         }
         cnt--;
         return pSeq->pTheorem;
@@ -190,6 +193,7 @@ TokenInfo * PropAdd(
             apCopy[1] = NewImplyNode(pParse,ppAxiom[0],ppAxiom[1],">>");
             pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");
+            FreeAstNode(pParse,apCopy[0]);
         }
         else{
             apCopy[4] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");

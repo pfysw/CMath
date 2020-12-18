@@ -10,6 +10,7 @@
 #include "ast.h"
 #include <assert.h>
 
+u8 testbuf[10000] = {0};
 void PrintAst(AstParse *pParse,TokenInfo *pAst)
 {
     static int cnt = 0;
@@ -105,7 +106,12 @@ TokenInfo *NewNode(AstParse *pParse)
     pParse->malloc_cnt++;
     memset(p,0,sizeof(TokenInfo));
     //if(pParse->malloc_cnt==2132)
-    printf("newnode %d\n",pParse->malloc_cnt);
+   // printf("newnode %d\n",pParse->malloc_cnt);
+    p->malloc_flag = pParse->malloc_cnt;
+    testbuf[pParse->malloc_cnt] = 1;
+    if(pParse->malloc_cnt==2264){
+        printf("newnode %d\n",pParse->malloc_cnt);
+    }
     return p;
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
@@ -113,6 +119,7 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
     if(p->type==PROP_SYMB || p->type==PROP_IMPL)
     {
         if(p->zSymb!=NULL){
+            testbuf[p->malloc_string] = 0;
             free(p->zSymb);
             p->zSymb = NULL;
             pParse->free_cnt++;
@@ -120,6 +127,7 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
     }
    // log_a("free %s",p->zSymb);
     pParse->free_cnt++;
+    testbuf[p->malloc_flag] = 0;
     free(p);
 }
 
@@ -191,7 +199,12 @@ void NewSymbString(AstParse *pParse,TokenInfo *p)
     p->zSymb = malloc(p->nSymbLen+1);
     pParse->malloc_cnt++;
     memcpy(p->zSymb,temp,p->nSymbLen+1);
-    printf("symb %d\n",pParse->malloc_cnt);
+   // printf("symb %d\n",pParse->malloc_cnt);
+    p->malloc_string = pParse->malloc_cnt;
+    testbuf[pParse->malloc_cnt] = 1;
+    if(pParse->malloc_cnt==2264){
+        printf("symb %d\n",pParse->malloc_cnt);
+    }
 }
 
 void SetSymb(AstParse *pParse, TokenInfo *pB)
@@ -287,7 +300,7 @@ TokenInfo * NewImplyNode(
         char *zSymb)
 {
     TokenInfo *pA =  NewNode(pParse);
-    printf("new \n");
+    //printf("new \n");
     SetImplExpr(pParse,pA,pB,pC,NULL);
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
@@ -303,7 +316,7 @@ TokenInfo * NewImplyNode(
     }
     pA->isNewTemp = 1;
     pParse->test += 2;
-    printf("end %d\n",pParse->test);
+    //printf("end %d\n",pParse->test);
     return pA;
 }
 

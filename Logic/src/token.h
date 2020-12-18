@@ -48,6 +48,8 @@ struct TokenInfo{
     u8 isNewTemp:4;
     char symb;
     char copy;
+    int malloc_flag;
+    int malloc_string;
 };
 
 #endif /* TOKEN_H_ */
