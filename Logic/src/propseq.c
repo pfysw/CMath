@@ -158,10 +158,6 @@ TokenInfo * PropAdd(
         }
         else
         {
-            if(pRight->isNewTemp){
-                printf("no free %d\n",pRight->malloc_flag);
-                PrintAst(pParse,pRight);
-            }
             apCopy[0] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
 #ifdef ADD_DEBUG
             log_a("add left %d",cnt);
@@ -177,8 +173,6 @@ TokenInfo * PropAdd(
             pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
             if(pRight->isNewTemp){
-                printf("no freea %d\n",pRight->malloc_flag);
-                PrintAst(pParse,pRight);
                 FreeAstNode(pParse,pRight);
             }
             FreeAstNode(pParse,apCopy[0]);

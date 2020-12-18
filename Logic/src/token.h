@@ -48,8 +48,10 @@ struct TokenInfo{
     u8 isNewTemp:4;
     char symb;
     char copy;
+#ifdef FREE_TEST
     int malloc_flag;
     int malloc_string;
+#endif
 };
 
 #endif /* TOKEN_H_ */

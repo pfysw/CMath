@@ -105,13 +105,13 @@ TokenInfo *NewNode(AstParse *pParse)
     p = (TokenInfo *)malloc(sizeof(TokenInfo));
     pParse->malloc_cnt++;
     memset(p,0,sizeof(TokenInfo));
-    //if(pParse->malloc_cnt==2132)
-   // printf("newnode %d\n",pParse->malloc_cnt);
+#ifdef FREE_TEST
     p->malloc_flag = pParse->malloc_cnt;
     testbuf[pParse->malloc_cnt] = 1;
     if(pParse->malloc_cnt==2282){
         printf("newnode %d\n",pParse->malloc_cnt);
     }
+#endif
     return p;
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
@@ -120,18 +120,21 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
     if(p->type==PROP_SYMB || p->type==PROP_IMPL)
     {
         if(p->zSymb!=NULL){
+#ifdef FREE_TEST
             testbuf[p->malloc_string] = 0;
+#endif
             free(p->zSymb);
             p->zSymb = NULL;
             pParse->free_cnt++;
         }
     }
-   // log_a("free %s",p->zSymb);
-    pParse->free_cnt++;
+#ifdef FREE_TEST
     testbuf[p->malloc_flag] = 0;
     if(p->malloc_flag==2282){
         log_a("free");
     }
+#endif
+    pParse->free_cnt++;
     free(p);
 }
 
@@ -204,11 +207,13 @@ void NewSymbString(AstParse *pParse,TokenInfo *p)
     pParse->malloc_cnt++;
     memcpy(p->zSymb,temp,p->nSymbLen+1);
    // printf("symb %d\n",pParse->malloc_cnt);
+#ifdef FREE_TEST
     p->malloc_string = pParse->malloc_cnt;
     testbuf[pParse->malloc_cnt] = 1;
     if(pParse->malloc_cnt==2264){
         printf("symb %d\n",pParse->malloc_cnt);
     }
+#endif
 }
 
 void SetSymb(AstParse *pParse, TokenInfo *pB)
@@ -319,7 +324,6 @@ TokenInfo * NewImplyNode(
         pA->op = OP_ADD;
     }
     pA->isNewTemp = 1;
-    pParse->test += 2;
     //printf("end %d\n",pParse->test);
     return pA;
 }
