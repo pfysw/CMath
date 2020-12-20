@@ -49,5 +49,6 @@ TokenInfo * NewImplyNode(
         TokenInfo *pC,
         char *zSymb);
 void FreeNewImplyNodes(AstParse *pParse,TokenInfo **ppAst);
+TokenInfo * NewNegNode(AstParse *pParse,TokenInfo *pB);
 
 #endif /* AST_H_ */

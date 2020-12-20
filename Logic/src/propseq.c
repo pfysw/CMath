@@ -240,16 +240,28 @@ TokenInfo * PropRemoveAdd(
         TokenInfo **ppTest,
         TokenInfo *pSeq)
 {
-    assert(pSeq->type==PROP_IMPL);
+//    PrintAst(pParse,pSeq);
+//    printf("pSeq->type %d\n",pSeq->type);
+//    assert(pSeq->type==PROP_IMPL);
 
 
     TokenInfo *pR;
     TokenInfo *apCopy[5] = {0};
 
-    assert(pSeq->op!=OP_ADD);
-    apCopy[0] = PropRemoveAdd(pParse,ppTest,pSeq->pLeft);
-    apCopy[1] = PropRemoveAdd(pParse,ppTest,pSeq->pRight);
-    pR = NewImplyNode(pParse,apCopy[0],apCopy[1],pSeq->zSymb);
+    if(pSeq->type==PROP_SYMB){
+        return pSeq;
+    }
+    assert(pSeq->type==PROP_IMPL);
+    if(pSeq->op==OP_ADD)
+    {
+        pR = PropAdd(pParse,ppTest,pSeq);
+    }
+    else
+    {
+        apCopy[0] = PropRemoveAdd(pParse,ppTest,pSeq->pLeft);
+        apCopy[1] = PropRemoveAdd(pParse,ppTest,pSeq->pRight);
+        pR = NewImplyNode(pParse,apCopy[0],apCopy[1],pSeq->zSymb);
+    }
     return pR;
 }
 
@@ -274,4 +286,19 @@ void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp)
 }
 
 
-
+TokenInfo * PropGenSeq(
+        AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo *pSeq)
+{
+    TokenInfo *pR = NULL;
+    TokenInfo *apMidFomula[100];
+    TokenInfo **ppMid = apMidFomula;
+    int idx = 0;
+    if(pSeq->pRight->type!=PROP_NEG)
+    {
+        ppMid[idx++] = pSeq->pLeft;
+        ppMid[idx++] = NewNegNode(pParse,pSeq->pRight);
+    }
+    return pR;
+}

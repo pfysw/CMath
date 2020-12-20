@@ -270,6 +270,13 @@ void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)
     //log_a("pB %s|%p",pB->zSymb,pB->zSymb);
 }
 
+TokenInfo * NewNegNode(AstParse *pParse,TokenInfo *pB)
+{
+    TokenInfo *pA =  NewNode(pParse);
+    SetNegExpr(pParse,pA,pB);
+    return pA;
+}
+
 void SetImplExpr(
         AstParse *pParse,
         TokenInfo *pA,

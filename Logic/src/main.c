@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
    yylex_init(&scanner);
 
    InitTheoremSet();
-   fd = BindScanFd(scanner,"in");
+   fd = BindScanFd(scanner,"in.sh");
 //   pParse = (AstParse *)malloc(sizeof(AstParse));
 //   memset(pParse,0,sizeof(AstParse));
    pParse = CreatAstParse();
