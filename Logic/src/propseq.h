@@ -34,5 +34,9 @@ TokenInfo * PropRemoveAdd(
         AstParse *pParse,
         TokenInfo **ppTest,
         TokenInfo *pSeq);
+TokenInfo * PropGenSeq(
+        AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo *pProp);
 
 #endif /* PROPSEQ_H_ */

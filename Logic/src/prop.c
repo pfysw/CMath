@@ -1147,7 +1147,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         PrintAst(pParse,theoremset.data[i]);
     }
   //  for(i=3;i<pParse->axiom_num;i++)
-    for(i=3;i<pParse->all_num;i++)
+    for(i=3;i<pParse->axiom_num;i++)
     {
         log_a("old i %d",i+1);
         if(i==18){
@@ -1174,6 +1174,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     {
         printf("num:%d\n",i+1);
         PrintAst(pParse,ppTest[i]);
+        PropGenSeq(pParse,ppTest,ppTest[i]);
     }
 
    // for(i=0; i<pParse->all_num; i++)

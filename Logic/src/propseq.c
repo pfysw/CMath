@@ -310,20 +310,26 @@ int isConflictProp(
 TokenInfo *CreateNA_AB(
         AstParse *pParse,
         TokenInfo **ppTest,
-        TokenInfo *pProp
-        )
+        AddSeq *pA,//~
+        AddSeq *pB)
 {
     TokenInfo *pR = NULL;
+    TokenInfo *apCopy[5] = {0};
+    apCopy[0] = NewImplyNode(pParse,pA->pSeq,ppTest[NA_AB],">");
+    pR =  NewImplyNode(pParse,pB->pSeq,apCopy[0],">");
     return pR;
 }
+
 TokenInfo * PropGenSeq(
         AstParse *pParse,
         TokenInfo **ppTest,
         TokenInfo *pProp)
 {
     TokenInfo *pR = NULL;
-    AddSeq *apMidFomula[100];
+    AddSeq *apMidFomula[100] = {0};
     AddSeq **ppMid = apMidFomula;
+    TokenInfo *apCopy[5] = {0};
+    TokenInfo *pNoNeg;
     int idx = 0;
     int offset = 0;
     int max;
@@ -342,12 +348,33 @@ TokenInfo * PropGenSeq(
                   if(isConflictProp(pParse,ppMid[i]->pNode,ppMid[j]->pNode))
                   {
                       if(ppMid[i]->pNode->type==PROP_NEG){
-
+                          apCopy[0] = CreateNA_AB(pParse,ppTest,ppMid[i],ppMid[j]);
                       }
                       else{
-
+                          apCopy[0] = CreateNA_AB(pParse,ppTest,ppMid[j],ppMid[i]);
                       }
-
+                      apCopy[1] = NewImplyNode(pParse,ppMid[1]->pSeq,apCopy[0],"+");
+                      apCopy[2] = NewImplyNode(pParse,apCopy[1],ppTest[NA_A_A],">");
+                      pR = NewImplyNode(pParse,ppMid[0]->pSeq,apCopy[2],"+");
+                      return pR;
+                  }
+                  else
+                  {
+                      if(ppMid[i]->pNode->type==PROP_NEG){
+                          pNoNeg = ppMid[i]->pNode->pLeft;
+                          ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
+                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
+                          idx++;
+                          ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
+                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
+                          idx++;
+                      }
+                      if(ppMid[j]->pNode->type!=PROP_NEG && ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
+                      {
+                          ppMid[idx]->pNode = ppMid[j]->pNode->pLeft;
+                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
+                          idx++;
+                      }
                   }
               }
           }
