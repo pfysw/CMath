@@ -17,6 +17,14 @@
 
 //#define MP_DEBUG
 
+#define N_AB_A  23
+#define N_AB_NB  24
+
+typedef struct AddSeq{
+    TokenInfo *pSymb;
+    TokenInfo *pSeq;
+}AddSeq;
+
 TokenInfo * PropAdd(AstParse *pParse,
         TokenInfo **ppTest,
         TokenInfo *pSeq);

@@ -285,20 +285,42 @@ void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp)
     }
 }
 
-
+int isConflictProp(
+        AstParse *pParse,
+        TokenInfo *pA,
+        TokenInfo *pB)
+{
+    int rc = 0;
+    return rc;
+}
 TokenInfo * PropGenSeq(
         AstParse *pParse,
         TokenInfo **ppTest,
-        TokenInfo *pSeq)
+        TokenInfo *pProp)
 {
     TokenInfo *pR = NULL;
-    TokenInfo *apMidFomula[100];
-    TokenInfo **ppMid = apMidFomula;
+    AddSeq *apMidFomula[100];
+    AddSeq **ppMid = apMidFomula;
     int idx = 0;
-    if(pSeq->pRight->type!=PROP_NEG)
+    int offset = 0;
+    int max;
+    int i,j;
+    if(pProp->pRight->type!=PROP_NEG)
     {
-        ppMid[idx++] = pSeq->pLeft;
-        ppMid[idx++] = NewNegNode(pParse,pSeq->pRight);
+        ppMid[0]->pSeq = pProp->pLeft;
+        ppMid[0]->pSymb = NewSymbNode(pParse,"A");
+        ppMid[1]->pSeq = NewNegNode(pParse,pProp->pRight);
+        ppMid[1]->pSymb = NewSymbNode(pParse,"B");
+        idx = 2;
+        do{
+          max = idx;
+          for(i=offset;i<max;i++){
+              for(j=0;j<max;j++){
+
+              }
+          }
+          offset = max;
+        }while(offset<idx);
     }
     return pR;
 }
