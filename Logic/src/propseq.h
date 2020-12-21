@@ -19,9 +19,11 @@
 
 #define N_AB_A  23
 #define N_AB_NB  24
+#define NA_AB  4
+#define NA_A_A  10
 
 typedef struct AddSeq{
-    TokenInfo *pSymb;
+    TokenInfo *pNode;
     TokenInfo *pSeq;
 }AddSeq;
 

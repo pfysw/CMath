@@ -291,7 +291,30 @@ int isConflictProp(
         TokenInfo *pB)
 {
     int rc = 0;
+    if(pA->type==PROP_NEG && pB->type!=PROP_NEG)
+    {
+        if(pA->pLeft==pB){
+            rc = 1;
+        }
+    }
+    else if(pA->type!=PROP_NEG && pB->type==PROP_NEG)
+    {
+        if(pB->pLeft==pA){
+            rc = 1;
+        }
+    }
     return rc;
+}
+
+//(~A->(A->B))
+TokenInfo *CreateNA_AB(
+        AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo *pProp
+        )
+{
+    TokenInfo *pR = NULL;
+    return pR;
 }
 TokenInfo * PropGenSeq(
         AstParse *pParse,
@@ -307,16 +330,25 @@ TokenInfo * PropGenSeq(
     int i,j;
     if(pProp->pRight->type!=PROP_NEG)
     {
-        ppMid[0]->pSeq = pProp->pLeft;
-        ppMid[0]->pSymb = NewSymbNode(pParse,"A");
-        ppMid[1]->pSeq = NewNegNode(pParse,pProp->pRight);
-        ppMid[1]->pSymb = NewSymbNode(pParse,"B");
+        ppMid[0]->pNode = pProp->pLeft;
+        ppMid[0]->pSeq = NewSymbNode(pParse,"A");
+        ppMid[1]->pNode = NewNegNode(pParse,pProp->pRight);
+        ppMid[1]->pSeq = NewSymbNode(pParse,"B");
         idx = 2;
         do{
           max = idx;
           for(i=offset;i<max;i++){
               for(j=0;j<max;j++){
+                  if(isConflictProp(pParse,ppMid[i]->pNode,ppMid[j]->pNode))
+                  {
+                      if(ppMid[i]->pNode->type==PROP_NEG){
 
+                      }
+                      else{
+
+                      }
+
+                  }
               }
           }
           offset = max;
