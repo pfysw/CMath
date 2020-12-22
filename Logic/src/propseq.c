@@ -320,20 +320,25 @@ TokenInfo *CreateNA_AB(
     return pR;
 }
 
+#define MID_NUM 100
 TokenInfo * PropGenSeq(
         AstParse *pParse,
         TokenInfo **ppTest,
         TokenInfo *pProp)
 {
     TokenInfo *pR = NULL;
-    AddSeq *apMidFomula[100] = {0};
-    AddSeq **ppMid = apMidFomula;
+    AddSeq apMidFomula[MID_NUM] = {0};
+    AddSeq **ppMid = (AddSeq **)malloc(sizeof(AddSeq *)*MID_NUM);
     TokenInfo *apCopy[5] = {0};
     TokenInfo *pNoNeg;
     int idx = 0;
     int offset = 0;
     int max;
     int i,j;
+    for(i=0;i<MID_NUM;i++)
+    {
+        ppMid[i] = &apMidFomula[i];
+    }
     if(pProp->pRight->type!=PROP_NEG)
     {
         ppMid[0]->pNode = pProp->pLeft;
@@ -344,7 +349,11 @@ TokenInfo * PropGenSeq(
         do{
           max = idx;
           for(i=offset;i<max;i++){
+              printf("i %d\n",i);
+              PrintAst(pParse,ppMid[i]->pNode);
               for(j=0;j<max;j++){
+                  printf("j %d idx %d\n",j,idx);
+                  PrintAst(pParse,ppMid[j]->pNode);
                   if(isConflictProp(pParse,ppMid[i]->pNode,ppMid[j]->pNode))
                   {
                       if(ppMid[i]->pNode->type==PROP_NEG){
@@ -356,30 +365,36 @@ TokenInfo * PropGenSeq(
                       apCopy[1] = NewImplyNode(pParse,ppMid[1]->pSeq,apCopy[0],"+");
                       apCopy[2] = NewImplyNode(pParse,apCopy[1],ppTest[NA_A_A],">");
                       pR = NewImplyNode(pParse,ppMid[0]->pSeq,apCopy[2],"+");
+                      free(ppMid);
                       return pR;
                   }
-                  else
+                  else if(ppMid[j]->pNode->type!=PROP_NEG && ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
                   {
-                      if(ppMid[i]->pNode->type==PROP_NEG){
-                          pNoNeg = ppMid[i]->pNode->pLeft;
-                          ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
-                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
-                          idx++;
-                          ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
-                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
-                          idx++;
-                      }
-                      if(ppMid[j]->pNode->type!=PROP_NEG && ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
-                      {
-                          ppMid[idx]->pNode = ppMid[j]->pNode->pLeft;
-                          ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
-                          idx++;
-                      }
+                      ppMid[idx]->pNode = ppMid[j]->pNode->pLeft;
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
+                      printf("idx %d\n",idx);
+                      PrintAst(pParse,ppMid[idx]->pNode);
+                      idx++;
                   }
+              }
+              if(ppMid[i]->pNode->type==PROP_NEG){
+                  pNoNeg = ppMid[i]->pNode->pLeft;
+                  ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
+                  ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
+                  printf("idx %d\n",idx);
+                  PrintAst(pParse,ppMid[idx]->pNode);
+                  idx++;
+                  ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
+                  ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
+                  printf("idx %d\n",idx);
+                  PrintAst(pParse,ppMid[idx]->pNode);
+                  idx++;
+
               }
           }
           offset = max;
         }while(offset<idx);
     }
+    free(ppMid);
     return pR;
 }
