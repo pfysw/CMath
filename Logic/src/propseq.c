@@ -368,7 +368,8 @@ TokenInfo * PropGenSeq(
                       free(ppMid);
                       return pR;
                   }
-                  else if(ppMid[j]->pNode->type!=PROP_NEG && ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
+                  else if(ppMid[j]->pNode->type!=PROP_NEG &&
+                          ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
                   {
                       ppMid[idx]->pNode = ppMid[j]->pNode->pLeft;
                       ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
@@ -376,19 +377,40 @@ TokenInfo * PropGenSeq(
                       PrintAst(pParse,ppMid[idx]->pNode);
                       idx++;
                   }
+                  else if(ppMid[i]->pNode->type!=PROP_NEG &&
+                          ppMid[j]->pNode==ppMid[i]->pNode->pLeft)
+                  {
+                      ppMid[idx]->pNode = ppMid[i]->pNode->pLeft;
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[j]->pSeq,ppMid[i]->pSeq,">");
+                      printf("idx %d\n",idx);
+                      PrintAst(pParse,ppMid[idx]->pNode);
+                      idx++;
+                  }
               }
-              if(ppMid[i]->pNode->type==PROP_NEG){
+
+              if(ppMid[i]->pNode->type==PROP_NEG)
+              {
                   pNoNeg = ppMid[i]->pNode->pLeft;
-                  ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
-                  ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
-                  printf("idx %d\n",idx);
-                  PrintAst(pParse,ppMid[idx]->pNode);
-                  idx++;
-                  ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
-                  ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
-                  printf("idx %d\n",idx);
-                  PrintAst(pParse,ppMid[idx]->pNode);
-                  idx++;
+                  if(pNoNeg->type==PROP_IMPL){
+                      ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
+                      printf("idx %d\n",idx);
+                      PrintAst(pParse,ppMid[idx]->pNode);
+                      idx++;
+                      ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
+                      printf("idx %d\n",idx);
+                      PrintAst(pParse,ppMid[idx]->pNode);
+                      idx++;
+                  }
+                  else if(pNoNeg->type==PROP_NEG)
+                  {
+                      ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pLeft);
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[NNA_A],">");
+                      printf("idx %d\n",idx);
+                      PrintAst(pParse,ppMid[idx]->pNode);
+                      idx++;
+                  }
 
               }
           }
