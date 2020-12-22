@@ -315,9 +315,19 @@ TokenInfo *CreateNA_AB(
 {
     TokenInfo *pR = NULL;
     TokenInfo *apCopy[5] = {0};
-    apCopy[0] = NewImplyNode(pParse,pA->pSeq,ppTest[NA_AB],">");
+    apCopy[1] = NewNumNode(pParse,NA_AB);
+    apCopy[0] = NewImplyNode(pParse,pA->pSeq,apCopy[1],">");
     pR =  NewImplyNode(pParse,pB->pSeq,apCopy[0],">");
     return pR;
+}
+
+void PrintGenInfo(AstParse *pParse,AddSeq **ppMid,int idx)
+{
+#ifdef GEN_DEBUG
+    printf("idx %d\n",idx);
+    PrintAst(pParse,ppMid[idx]->pNode);
+    PrintAst(pParse,ppMid[idx]->pSeq);
+#endif
 }
 
 #define MID_NUM 100
@@ -349,11 +359,15 @@ TokenInfo * PropGenSeq(
         do{
           max = idx;
           for(i=offset;i<max;i++){
+#ifdef GEN_DEBUG
               printf("i %d\n",i);
               PrintAst(pParse,ppMid[i]->pNode);
+#endif
               for(j=0;j<max;j++){
-                  printf("j %d idx %d\n",j,idx);
+#ifdef GEN_DEBUG
+                  printf("i %d j %d\n",i,j);
                   PrintAst(pParse,ppMid[j]->pNode);
+#endif
                   if(isConflictProp(pParse,ppMid[i]->pNode,ppMid[j]->pNode))
                   {
                       if(ppMid[i]->pNode->type==PROP_NEG){
@@ -363,27 +377,27 @@ TokenInfo * PropGenSeq(
                           apCopy[0] = CreateNA_AB(pParse,ppTest,ppMid[j],ppMid[i]);
                       }
                       apCopy[1] = NewImplyNode(pParse,ppMid[1]->pSeq,apCopy[0],"+");
-                      apCopy[2] = NewImplyNode(pParse,apCopy[1],ppTest[NA_A_A],">");
+                      apCopy[3] = NewNumNode(pParse,NA_A_A);
+                      apCopy[2] = NewImplyNode(pParse,apCopy[1],apCopy[3],">");
                       pR = NewImplyNode(pParse,ppMid[0]->pSeq,apCopy[2],"+");
                       free(ppMid);
+                      //PrintAst(pParse,pR);
                       return pR;
                   }
-                  else if(ppMid[j]->pNode->type!=PROP_NEG &&
+                  else if(ppMid[j]->pNode->type==PROP_IMPL &&
                           ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
                   {
-                      ppMid[idx]->pNode = ppMid[j]->pNode->pLeft;
+                      ppMid[idx]->pNode = ppMid[j]->pNode->pRight;
                       ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
-                      printf("idx %d\n",idx);
-                      PrintAst(pParse,ppMid[idx]->pNode);
+                      PrintGenInfo(pParse,ppMid,idx);
                       idx++;
                   }
-                  else if(ppMid[i]->pNode->type!=PROP_NEG &&
+                  else if(ppMid[i]->pNode->type==PROP_IMPL &&
                           ppMid[j]->pNode==ppMid[i]->pNode->pLeft)
                   {
-                      ppMid[idx]->pNode = ppMid[i]->pNode->pLeft;
+                      ppMid[idx]->pNode = ppMid[i]->pNode->pRight;
                       ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[j]->pSeq,ppMid[i]->pSeq,">");
-                      printf("idx %d\n",idx);
-                      PrintAst(pParse,ppMid[idx]->pNode);
+                      PrintGenInfo(pParse,ppMid,idx);
                       idx++;
                   }
               }
@@ -393,22 +407,22 @@ TokenInfo * PropGenSeq(
                   pNoNeg = ppMid[i]->pNode->pLeft;
                   if(pNoNeg->type==PROP_IMPL){
                       ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
-                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_A],">");
-                      printf("idx %d\n",idx);
-                      PrintAst(pParse,ppMid[idx]->pNode);
+                      apCopy[0] = NewNumNode(pParse,N_AB_A);
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
+                      PrintGenInfo(pParse,ppMid,idx);
                       idx++;
                       ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pRight);
-                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[N_AB_NB],">");
-                      printf("idx %d\n",idx);
-                      PrintAst(pParse,ppMid[idx]->pNode);
+                      apCopy[1] = NewNumNode(pParse,N_AB_NB);
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[1],">");
+                      PrintGenInfo(pParse,ppMid,idx);
                       idx++;
                   }
                   else if(pNoNeg->type==PROP_NEG)
                   {
                       ppMid[idx]->pNode = NewNegNode(pParse,pNoNeg->pLeft);
-                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppTest[NNA_A],">");
-                      printf("idx %d\n",idx);
-                      PrintAst(pParse,ppMid[idx]->pNode);
+                      apCopy[0] = NewNumNode(pParse,NNA_A);
+                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
+                      PrintGenInfo(pParse,ppMid,idx);
                       idx++;
                   }
 
@@ -418,5 +432,6 @@ TokenInfo * PropGenSeq(
         }while(offset<idx);
     }
     free(ppMid);
+    assert(0);
     return pR;
 }

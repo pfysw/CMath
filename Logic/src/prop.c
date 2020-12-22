@@ -10,6 +10,7 @@
 #include "ast.h"
 #include <assert.h>
 #include "prop.h"
+#include "propseq.h"
 
 typedef struct PermData
 {
@@ -1174,7 +1175,10 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     {
         printf("num:%d\n",i+1);
         PrintAst(pParse,ppTest[i]);
-        PropGenSeq(pParse,ppTest,ppTest[i]);
+        SetSameNode(pParse,&ppTest[i],ppTemp);
+        pR = PropGenSeq(pParse,ppTest,ppTest[i]);
+        printf("seq %d\n",i+1);
+        PrintAst(pParse,pR);
     }
 
    // for(i=0; i<pParse->all_num; i++)

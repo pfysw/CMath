@@ -16,6 +16,7 @@
 #include "prop.h"
 
 //#define MP_DEBUG
+#define GEN_DEBUG
 
 #define N_AB_A  23
 #define N_AB_NB  24

@@ -348,8 +348,18 @@ TokenInfo * NewSymbNode(AstParse *pParse,char *zSymb)
 {
     TokenInfo *pA =  NewNode(pParse);
     pA->zSymb = zSymb;
+    pA->nSymbLen = strlen(zSymb);
     pA->symb = zSymb[0];
     SetSymb(pParse,pA);
+    return pA;
+}
+
+TokenInfo * NewNumNode(AstParse *pParse,int num)
+{
+    TokenInfo *pA;
+    char zSymb[10] = {0};
+    sprintf(zSymb,"%d",num);
+    pA = NewSymbNode(pParse,zSymb);
     return pA;
 }
 
