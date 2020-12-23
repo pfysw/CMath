@@ -330,6 +330,23 @@ void PrintGenInfo(AstParse *pParse,AddSeq **ppMid,int idx)
 #endif
 }
 
+void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
+{
+    TokenInfo *pNoNeg;
+    if(ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
+    {
+        ppMid[*idx]->pNode = ppMid[j]->pNode->pRight;
+        ppMid[*idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
+        PrintGenInfo(pParse,ppMid,*idx);
+        (*idx)++;
+    }
+    else if(ppMid[j]->pNode->pRight->type==PROP_NEG)
+    {
+        pNoNeg = ppMid[j]->pNode->pRight->pLeft;
+    }
+}
+
+
 #define MID_NUM 100
 TokenInfo * PropGenSeq(
         AstParse *pParse,
@@ -384,21 +401,13 @@ TokenInfo * PropGenSeq(
                       //PrintAst(pParse,pR);
                       return pR;
                   }
-                  else if(ppMid[j]->pNode->type==PROP_IMPL &&
-                          ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
+                  if(ppMid[j]->pNode->type==PROP_IMPL )
                   {
-                      ppMid[idx]->pNode = ppMid[j]->pNode->pRight;
-                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,ppMid[j]->pSeq,">");
-                      PrintGenInfo(pParse,ppMid,idx);
-                      idx++;
+                      FindNewMpSeq(pParse,ppMid,i,j,&idx);
                   }
-                  else if(ppMid[i]->pNode->type==PROP_IMPL &&
-                          ppMid[j]->pNode==ppMid[i]->pNode->pLeft)
+                  if(ppMid[i]->pNode->type==PROP_IMPL)
                   {
-                      ppMid[idx]->pNode = ppMid[i]->pNode->pRight;
-                      ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[j]->pSeq,ppMid[i]->pSeq,">");
-                      PrintGenInfo(pParse,ppMid,idx);
-                      idx++;
+                      FindNewMpSeq(pParse,ppMid,j,i,&idx);
                   }
               }
 
@@ -406,7 +415,7 @@ TokenInfo * PropGenSeq(
               {
                   pNoNeg = ppMid[i]->pNode->pLeft;
                   if(pNoNeg->type==PROP_IMPL){
-                      ppMid[idx]->pNode = pNoNeg->pLeft;//lijia malloc
+                      ppMid[idx]->pNode = pNoNeg->pLeft;// malloc
                       apCopy[0] = NewNumNode(pParse,N_AB_A);
                       ppMid[idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
                       PrintGenInfo(pParse,ppMid,idx);
