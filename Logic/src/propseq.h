@@ -23,6 +23,8 @@
 #define NA_AB  4
 #define NA_A_A  10
 #define NNA_A  5
+#define A_NNA  6
+#define AB_NBNA  9
 
 typedef struct AddSeq{
     TokenInfo *pNode;

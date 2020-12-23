@@ -228,20 +228,8 @@ void NewSymbString(AstParse *pParse,TokenInfo *p)
 void SetSymb(AstParse *pParse, TokenInfo *pB)
 {
 //分配字符串
-#if 0
-    char temp[10] = {0};
-    assert(pB->nSymbLen<10);
-    memcpy(temp,pB->zSymb,pB->nSymbLen);
-    pB->zSymb = malloc(pB->nSymbLen);
-    memcpy(pB->zSymb,temp,pB->nSymbLen);
-    log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
-#endif
     NewSymbString(pParse,pB);
     pB->type = PROP_SYMB;
-//    if(pB->symb>'9'){
-//        pB->isDeduction = 1;
-//    }
-   // log_a("sym %s len %d",pB->zSymb,pB->nSymbLen);
 }
 
 AstParse *CreatAstParse(void){

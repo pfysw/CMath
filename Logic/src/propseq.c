@@ -330,9 +330,11 @@ void PrintGenInfo(AstParse *pParse,AddSeq **ppMid,int idx)
 #endif
 }
 
+//不考虑双重否定的情况
 void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
 {
     TokenInfo *pNoNeg;
+    TokenInfo *apCopy[5] = {0};
     if(ppMid[i]->pNode==ppMid[j]->pNode->pLeft)
     {
         ppMid[*idx]->pNode = ppMid[j]->pNode->pRight;
@@ -342,7 +344,35 @@ void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
     }
     else if(ppMid[j]->pNode->pRight->type==PROP_NEG)
     {
-        pNoNeg = ppMid[j]->pNode->pRight->pLeft;
+        if(ppMid[i]->pNode==ppMid[j]->pNode->pRight->pLeft){
+            if(ppMid[j]->pNode->pLeft->type==PROP_NEG)
+            {
+                pNoNeg = ppMid[j]->pNode->pLeft->pLeft;
+                apCopy[0] = NewImplyNode(pParse,ppMid[j]->pSeq,pParse->apAxiom[2],">");
+                ppMid[*idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
+            }
+            else
+            {
+                pNoNeg = NewNegNode(pParse,ppMid[j]->pNode->pLeft);
+                apCopy[1] = NewNumNode(pParse,NNA_A);
+                apCopy[0] = NewImplyNode(pParse,apCopy[1],ppMid[j]->pSeq,">>");
+                apCopy[2] = NewImplyNode(pParse,apCopy[0],pParse->apAxiom[2],">");
+                ppMid[*idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[2],">");
+            }
+            ppMid[*idx]->pNode = pNoNeg;
+            (*idx)++;
+        }
+    }
+    else if(ppMid[i]->pNode->type==PROP_NEG)
+    {
+        if(ppMid[i]->pNode->pLeft==ppMid[j]->pNode->pRight)
+        {
+            apCopy[1] = NewNumNode(pParse,AB_NBNA);
+            apCopy[0] = NewImplyNode(pParse,ppMid[j]->pSeq,apCopy[1],">");
+            ppMid[*idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
+            ppMid[*idx]->pNode = NewNegNode(pParse,ppMid[j]->pNode->pLeft);
+            (*idx)++;
+        }
     }
 }
 
