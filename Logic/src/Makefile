@@ -15,7 +15,7 @@ ${TARGET}: ${OBJ} ${OBJ_DIR}/prop.lemon.o
 	@echo "Compile done."
     
 
-${OBJ_DIR}/%.o:%.c %.h lex.yy.h token.h ast.h
+${OBJ_DIR}/%.o:%.c lex.yy.h token.h ast.h
 	@echo "Compiling $< ==> $@"
 	${CC} ${CCFLAGS} -c $< -o $@
 

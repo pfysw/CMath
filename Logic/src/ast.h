@@ -8,6 +8,7 @@
 #ifndef AST_H_
 #define AST_H_
 #include "token.h"
+#include "mem5.h"
 
 typedef struct AstParse AstParse;
 struct AstParse
@@ -15,6 +16,7 @@ struct AstParse
     TokenInfo *pRoot;
     TokenInfo * apAxiom[3];
     TokenInfo **ppTemp;//存在递归时的共享变量
+    Mem5Global *pMem;
     u8 bDiscard;
     int n;
     int axiom_num;
@@ -52,5 +54,8 @@ void FreeNewImplyNodes(AstParse *pParse,TokenInfo **ppAst);
 TokenInfo * NewNegNode(AstParse *pParse,TokenInfo *pB);
 TokenInfo * NewSymbNode(AstParse *pParse,char *zSymb);
 TokenInfo * NewNumNode(AstParse *pParse,int num);
+
+void NewMemPool(AstParse *pParse,int len);
+void FreeMemPool(AstParse *pParse);
 
 #endif /* AST_H_ */

@@ -1022,7 +1022,7 @@ void  SubstPropTest(
         AstParse *pParse,
         TokenInfo **ppTest)
 {
-    int i,j,k;
+    int i,j;
     int n;
     int rc;
     TokenInfo *ppTemp[100];
@@ -1045,7 +1045,7 @@ void  SubstPropTest(
         aCnt[i] = DeepSearch(pParse,ppTemp,i,aCnt[i],INDEX_J);
         if( theoremset.n>3000 )
         {
-            for(int j=3;j<refset.nRef;j++)
+            for(j=3;j<refset.nRef;j++)
             {
                 //refset.aSet[j]++;
                 refset.aSet[j] = j+theoremset.n-3000;
@@ -1147,9 +1147,10 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         printf("num:%d\n",i+1);
         PrintAst(pParse,theoremset.data[i]);
     }
-  //  for(i=3;i<pParse->axiom_num;i++)
+    //for(i=3;i<pParse->axiom_num;i++)
     for(i=3;i<pParse->axiom_num;i++)
     {
+        NewMemPool(pParse,1000000);
         log_a("old i %d",i+1);
         if(i==18){
             printf("ss:%d\n",i+1);
@@ -1170,15 +1171,18 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         log_a("new i %d",i+1);
         PrintAst(pParse,ppTest[i]);
         SetSameNode(pParse,&ppTest[i],ppTemp);
+        FreeMemPool(pParse);
     }
     for(; i<pParse->all_num; i++)
     {
+        NewMemPool(pParse,1000000);
         printf("num:%d\n",i+1);
         PrintAst(pParse,ppTest[i]);
         SetSameNode(pParse,&ppTest[i],ppTemp);
         pR = PropGenSeq(pParse,ppTest,ppTest[i]);
         printf("seq %d\n",i+1);
         PrintAst(pParse,pR);
+        FreeMemPool(pParse);
     }
 
    // for(i=0; i<pParse->all_num; i++)

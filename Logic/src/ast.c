@@ -125,6 +125,10 @@ TokenInfo *NewNode(AstParse *pParse)
 }
 void FreeAstNode(AstParse *pParse,TokenInfo *p)
 {
+    if(pParse->free_cnt==2261)
+    {
+        printf("sd %d\n",pParse->free_cnt);
+    }
     assert(p!=NULL);
     if(p->type==PROP_SYMB || p->type==PROP_IMPL)
     {
@@ -145,6 +149,15 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
 #endif
     pParse->free_cnt++;
     free(p);
+}
+
+TokenInfo *NewTempNode(AstParse *pParse)
+{
+    TokenInfo *p;
+    Mem5Global *pMem = pParse->pMem;
+    p = (TokenInfo *)memsys5Malloc(pMem,sizeof(TokenInfo));
+    memset(p,0,sizeof(TokenInfo));
+    return p;
 }
 
 void FreeAstTree(
@@ -251,6 +264,18 @@ AstParse *CreatAstParse(void){
     return pParse;
 }
 
+void NewMemPool(AstParse *pParse,int len)
+{
+    pParse->pMem = memsys5Init(len,16);
+    pParse->malloc_cnt++;
+}
+
+void FreeMemPool(AstParse *pParse)
+{
+    memsys5Shutdown(&pParse->pMem);
+    pParse->free_cnt++;
+}
+
 void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)
 {
     pA->type = PROP_NEG;
@@ -260,7 +285,7 @@ void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)
 
 TokenInfo * NewNegNode(AstParse *pParse,TokenInfo *pB)
 {
-    TokenInfo *pA =  NewNode(pParse);
+    TokenInfo *pA =  NewTempNode(pParse);
     SetNegExpr(pParse,pA,pB);
     return pA;
 }
@@ -312,12 +337,11 @@ TokenInfo * NewImplyNode(
         TokenInfo *pC,
         char *zSymb)
 {
-    TokenInfo *pA =  NewNode(pParse);
+    TokenInfo *pA =  NewTempNode(pParse);
     //printf("new \n");
     SetImplExpr(pParse,pA,pB,pC,NULL);
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
-    NewSymbString(pParse,pA);
     if(!strcmp(zSymb,">")){
         pA->op = OP_MP;
     }
@@ -334,11 +358,11 @@ TokenInfo * NewImplyNode(
 
 TokenInfo * NewSymbNode(AstParse *pParse,char *zSymb)
 {
-    TokenInfo *pA =  NewNode(pParse);
+    TokenInfo *pA =  NewTempNode(pParse);
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
     pA->symb = zSymb[0];
-    SetSymb(pParse,pA);
+    pA->type = PROP_SYMB;
     return pA;
 }
 

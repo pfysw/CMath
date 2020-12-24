@@ -77,7 +77,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
             pTemp = CopyAstTree(pParse,pSeq->pTheorem,0);
             FreePropSeq(pParse,pSeq->pDeduce,ppTemp);
-            FreeNewImplyNodes(pParse,&pSeq->pDeduce);
+            //FreeNewImplyNodes(pParse,&pSeq->pDeduce);
             pSeq->pTheorem = pTemp;
         }
         cnt--;
@@ -145,7 +145,7 @@ TokenInfo * PropAdd(
         if(pSeq->pLeft==pRl && (!pRr->isDeduction || !isChildProp(pParse,pRr,pSeq->pLeft)) )
         {
             if(pRight->isNewTemp){
-                FreeAstNode(pParse,pRight);
+                //FreeAstNode(pParse,pRight);
             }
             pR = pRr;
 #ifdef ADD_DEBUG
@@ -173,10 +173,10 @@ TokenInfo * PropAdd(
             pNr = NewImplyNode(pParse,apCopy[2],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[2]都作为pR的子结点
             if(pRight->isNewTemp){
-                FreeAstNode(pParse,pRight);
+                //FreeAstNode(pParse,pRight);
             }
-            FreeAstNode(pParse,apCopy[0]);
-            FreeAstNode(pParse,apCopy[1]);
+            //FreeAstNode(pParse,apCopy[0]);
+            //FreeAstNode(pParse,apCopy[1]);
 
 #ifdef ADD_DEBUG
             log_a("add pR2 %d",cnt);
@@ -200,7 +200,7 @@ TokenInfo * PropAdd(
             apCopy[1] = NewImplyNode(pParse,ppAxiom[0],ppAxiom[1],">>");
             pNr = NewImplyNode(pParse,apCopy[1],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");
-            FreeAstNode(pParse,apCopy[0]);
+            //FreeAstNode(pParse,apCopy[0]);
         }
         else{
             apCopy[4] = NewImplyNode(pParse,pSeq->pLeft,pRl,"+");
@@ -211,16 +211,16 @@ TokenInfo * PropAdd(
             apCopy[3] = PropAdd(pParse,ppTest,apCopy[2]);
             pNr = NewImplyNode(pParse,apCopy[3],ppAxiom[1],">");
             pR = NewImplyNode(pParse,pNl,pNr,">");//nl,nr,apCopy[3]都作为pR的子结点
-            FreeAstNode(pParse,apCopy[4]);
-            FreeAstNode(pParse,apCopy[2]);
+            //FreeAstNode(pParse,apCopy[4]);
+            //FreeAstNode(pParse,apCopy[2]);
         }
         break;
     case OP_ADD:
         apCopy[0] = PropAdd(pParse,ppTest,pSeq->pRight);
         apCopy[1] = NewImplyNode(pParse,pSeq->pLeft,apCopy[0],"+");
         pR =  PropAdd(pParse,ppTest,apCopy[1]);
-        //FreeAstNode(pParse,apCopy[0]); //in mp pSeq->pRight free
-        FreeAstNode(pParse,apCopy[1]);
+        ////FreeAstNode(pParse,apCopy[0]); //in mp pSeq->pRight free
+        //FreeAstNode(pParse,apCopy[1]);
         break;
     default:
         assert(0);
