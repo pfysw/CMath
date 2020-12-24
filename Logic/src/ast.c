@@ -157,6 +157,7 @@ TokenInfo *NewTempNode(AstParse *pParse)
     Mem5Global *pMem = pParse->pMem;
     p = (TokenInfo *)memsys5Malloc(pMem,sizeof(TokenInfo));
     memset(p,0,sizeof(TokenInfo));
+    pParse->test += sizeof(TokenInfo);
     return p;
 }
 
@@ -274,6 +275,8 @@ void FreeMemPool(AstParse *pParse)
 {
     memsys5Shutdown(&pParse->pMem);
     pParse->free_cnt++;
+    log_a("pool len %d",pParse->test);
+    pParse->test = 0;
 }
 
 void SetNegExpr(AstParse *pParse,TokenInfo *pA, TokenInfo *pB)

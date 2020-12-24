@@ -1147,7 +1147,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         printf("num:%d\n",i+1);
         PrintAst(pParse,theoremset.data[i]);
     }
-    //for(i=3;i<pParse->axiom_num;i++)
+
     for(i=3;i<pParse->axiom_num;i++)
     {
         NewMemPool(pParse,1000000);
@@ -1191,4 +1191,6 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         FreeAstTree(pParse,&ppTest[i],ppTemp);
     }
     pParse->ppTemp = NULL;
+
+
 }

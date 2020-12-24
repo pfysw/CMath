@@ -77,7 +77,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
             pTemp = CopyAstTree(pParse,pSeq->pTheorem,0);
             FreePropSeq(pParse,pSeq->pDeduce,ppTemp);
-            //FreeNewImplyNodes(pParse,&pSeq->pDeduce);
+            //FreeNewImplyNodes(pParse,&pSeq->pDeduce);//不用了，改为内存池
             pSeq->pTheorem = pTemp;
         }
         cnt--;
