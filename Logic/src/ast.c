@@ -238,6 +238,15 @@ void NewSymbString(AstParse *pParse,TokenInfo *p)
     }
 #endif
 }
+void NewSymbStr(AstParse *pParse,TokenInfo *p)
+{
+    char temp[100] = {0};
+    Mem5Global *pMem = pParse->pMem;
+    assert(p->nSymbLen<10);
+    memcpy(temp,p->zSymb,p->nSymbLen);
+    p->zSymb = memsys5Malloc(pMem,p->nSymbLen+1);
+    memcpy(p->zSymb,temp,p->nSymbLen+1);
+}
 
 void SetSymb(AstParse *pParse, TokenInfo *pB)
 {
@@ -364,6 +373,7 @@ TokenInfo * NewSymbNode(AstParse *pParse,char *zSymb)
     TokenInfo *pA =  NewTempNode(pParse);
     pA->zSymb = zSymb;
     pA->nSymbLen = strlen(zSymb);
+    NewSymbStr(pParse,pA);
     pA->symb = zSymb[0];
     pA->type = PROP_SYMB;
     return pA;

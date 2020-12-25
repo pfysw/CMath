@@ -428,7 +428,7 @@ TokenInfo * PropGenSeq(
                       apCopy[2] = NewImplyNode(pParse,apCopy[1],apCopy[3],">");
                       pR = NewImplyNode(pParse,ppMid[0]->pSeq,apCopy[2],"+");
                       free(ppMid);
-                      //PrintAst(pParse,pR);
+                      PrintAst(pParse,pR);
                       return pR;
                   }
                   if(ppMid[j]->pNode->type==PROP_IMPL )
