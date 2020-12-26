@@ -536,7 +536,8 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
 #define DEBUG 1
 #define INDEX_I   75
 #define INDEX_J   15
-#define NUM_NOT_SAME   5
+#define NUM_NOT_SAME   7
+#define NUM_ALL_NODE   27
 #define LOOP_N         5
 
 
@@ -901,7 +902,7 @@ TokenInfo *  PropMpSubst(
         int n,m;
 
         m = GetAllNode(pParse,&pB->pRight,ppTemp);
-        if( m>15 ) {
+        if( m>NUM_ALL_NODE ) {
             printf("GetAllNode num %d\n",m);
             goto end_insert;
         }

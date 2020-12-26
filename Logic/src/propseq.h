@@ -16,7 +16,7 @@
 #include "prop.h"
 
 //#define MP_DEBUG
-#define GEN_DEBUG
+//#define GEN_DEBUG
 
 #define N_AB_A  23
 #define N_AB_NB  24
@@ -25,6 +25,7 @@
 #define NNA_A  5
 #define A_NNA  6
 #define AB_NBNA  9
+#define A_NB_NAB  26
 
 typedef struct AddSeq{
     TokenInfo *pNode;
