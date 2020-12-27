@@ -394,6 +394,57 @@ void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
     }
 }
 
+TokenInfo * PropGenNegSeq(
+        AstParse *pParse,
+        TokenInfo **ppTest,
+        TokenInfo *pProp,
+        u8 bNeg)
+{
+    TokenInfo *pR = NULL;
+    TokenInfo *apCopy[10] = {0};
+    TokenInfo *pNeg;
+    TokenInfo *pLeft;
+    TokenInfo *pRight;
+
+    assert(pProp->type==PROP_IMPL);
+    pLeft = pProp->pLeft;
+    pRight = pProp->pRight;
+    if(pRight->type==PROP_NEG){
+        pNeg = pRight->pLeft;
+    }
+    else
+    {
+        pNeg = NewNegNode(pParse,pRight);
+    }
+    if(pLeft->type!=PROP_NEG){
+        apCopy[0] = NewNegNode(pParse,pLeft);
+        apCopy[1] = NewImplyNode(pParse,pNeg,apCopy[0],"->");
+        apCopy[2] = PropGenSeq(pParse,ppTest,apCopy[1]);
+        if(bNeg){
+            apCopy[3] = NewNumNode(pParse,A_NB_B_NA);
+        }
+        else{
+            apCopy[3] = pParse->apAxiom[2];
+        }
+        pR = NewImplyNode(pParse,apCopy[2],apCopy[3],">");
+    }
+    else
+    {
+        apCopy[0] = pLeft->pLeft;
+        apCopy[1] = NewImplyNode(pParse,pNeg,apCopy[0],"->");
+        apCopy[2] = PropGenSeq(pParse,ppTest,apCopy[1]);
+        apCopy[3] = NewNumNode(pParse,AB_NBNA);
+        if(!bNeg)//~A->B  (~B->A)->(~A->~~B)->~A->B
+        {
+            apCopy[4] = NewNumNode(pParse,NNA_A);
+            pR = NewImplyNode(pParse,apCopy[2],apCopy[4],">>");
+        }
+        else{
+            pR = NewImplyNode(pParse,apCopy[2],apCopy[3],">");
+        }
+    }
+    return pR;
+}
 
 #define MID_NUM 100
 TokenInfo * PropGenSeq(
@@ -508,6 +559,10 @@ TokenInfo * PropGenSeq(
           }
           offset = max;
         }while(offset<idx);
+        if(pProp->pLeft->type!=PROP_SYMB)
+        {
+            pR = PropGenNegSeq(pParse,ppTest,pProp,0);
+        }
     }
     else
     {
@@ -526,26 +581,23 @@ TokenInfo * PropGenSeq(
             return pR;
         }
 
-        if(pProp->pLeft->type==PROP_NEG)//~ -> ~
-        {
-            apCopy[0] = NewImplyNode(pParse,pNoNeg,pProp->pLeft->pLeft,"->");
-            apCopy[1] = PropGenSeq(pParse,ppTest,apCopy[0]);
-            apCopy[2] = NewNumNode(pParse,AB_NBNA);
-            pR = NewImplyNode(pParse,apCopy[1],apCopy[2],">");
-        }
-        else if(pNoNeg->type!=PROP_SYMB)
+        if(pNoNeg->type!=PROP_SYMB)
         {
             assert(pNoNeg->type==PROP_IMPL);//A->~(B->C)
 
             apCopy[0] = NewImplyNode(pParse,pProp->pLeft,pNoNeg->pLeft,"->");
+#ifdef GEN_DEBUG
             printf("left\n");
             PrintAst(pParse,apCopy[0]);
+#endif
             apCopy[1] = PropGenSeq(pParse,ppTest,apCopy[0]);//A->B
 
             apCopy[3] = NewNegNode(pParse,pNoNeg->pRight);
             apCopy[2] = NewImplyNode(pParse,pProp->pLeft,apCopy[3],"->");
+#ifdef GEN_DEBUG
             printf("right\n");
             PrintAst(pParse,apCopy[2]);
+#endif
             apCopy[4] = PropGenSeq(pParse,ppTest,apCopy[2]);//A->~C
 
             apCopy[5] = NewNumNode(pParse,A_NB_NAB);//B->(~C->~(B->C))
@@ -558,7 +610,7 @@ TokenInfo * PropGenSeq(
         }
         else if(pProp->pLeft->type!=PROP_SYMB)//(A->B)->~C
         {
-            printf("todo (A->B)->~C\n");
+            pR = PropGenNegSeq(pParse,ppTest,pProp,1);
         }
         else {
             printf("can\'t theorem\n");

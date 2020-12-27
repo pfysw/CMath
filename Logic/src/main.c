@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
        {
            PropParse(pLemon, 0, 0,pParse);
 //           log_a("----- %d -----",idx);
-//           PrintAst(pParse,pParse->pRoot);
+//           PrintAst(pParse,pParse->pRoot);//
            //ppTest[idx++] = pParse->pRoot;
            idx++;
            InsertVector(&theoremset,pParse->pRoot);
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
                 token = yylex(scanner);//jump ;
                 zSymb = yyget_text(scanner);
            }
-           else if(!memcmp(zSymb,"end",3)){
+           if(!memcmp(zSymb,"end",3)){
 	           pParse->all_num = idx;
 	           break;
 	       }

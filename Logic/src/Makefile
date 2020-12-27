@@ -4,6 +4,8 @@ SRC = ${wildcard  *.c}
 # 把.c后缀替换为.o，并加上目录        
 OBJ = ${patsubst %.c, ${OBJ_DIR}/%.o, ${notdir ${SRC}}}
 
+INC = ${wildcard  *.h}
+
 TARGET=${OBJ_DIR}/prop
 CC=cc
 CCFLAGS=-g -Wall 
@@ -15,10 +17,10 @@ ${TARGET}: ${OBJ} ${OBJ_DIR}/prop.lemon.o
 	@echo "Compile done."
     
 
-${OBJ_DIR}/%.o:%.c lex.yy.h token.h ast.h
+${OBJ_DIR}/%.o:%.c lex.yy.h token.h ${INC}
 	@echo "Compiling $< ==> $@"
 	${CC} ${CCFLAGS} -c $< -o $@
-
+	
 ${OBJ_DIR}/prop.lemon.o:prop.lemon.c
 
 lex.yy.c lex.yy.h:prop.lex.l 
