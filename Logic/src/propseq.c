@@ -475,7 +475,13 @@ TokenInfo * PropGenSeq(
         }
         else
         {
-            assert(0);//暂时不支持~（）型，碰到再说
+            apCopy[0] = NewImplyNode(pParse,pNoNeg,pProp,"+");
+            apCopy[1] = PropGenSeq(pParse,ppTest,apCopy[0]);
+            apCopy[2] = NewNumNode(pParse,NNA_A);
+            apCopy[3] = NewImplyNode(pParse,apCopy[2],apCopy[1],">>");
+            apCopy[4] = NewNumNode(pParse,NA_A_A);
+            pR = NewImplyNode(pParse,apCopy[3],apCopy[4],">");
+            return pR;
         }
     }
 
