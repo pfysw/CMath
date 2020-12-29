@@ -1121,7 +1121,8 @@ void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest)
 
     SetSameNode(pParse,&ppTest[3],ppTemp);
     SetSameNode(pParse,&ppTest[4],ppTemp);
-    rc = SubstProp(pParse,ppTest[3]->pLeft,ppTest[4]);
+    rc = SubstProp(pParse,ppTest[3]->pRight,ppTest[4]);
+   // rc = SubstProp(pParse,ppTest[3]->pLeft,ppTest[4]);
     log_a("rc %d",rc);
 
     PrintSubstAst(pParse,ppTest[3]);

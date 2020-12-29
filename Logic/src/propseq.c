@@ -511,9 +511,11 @@ TokenInfo * PropGenSeq(
 
                   if(isConflictProp(pParse,ppMid[i]->pNode,ppMid[j]->pNode))
                   {
+#ifdef GEN_DEBUG
                       printf("conflict %d %d\n",i,j);
                       PrintAst(pParse,ppMid[i]->pNode);
                       PrintAst(pParse,ppMid[j]->pNode);
+#endif
                       if(ppMid[i]->pNode->type==PROP_NEG){
                           apCopy[0] = CreateNA_AB(pParse,ppTest,ppMid[i],ppMid[j]);
                       }

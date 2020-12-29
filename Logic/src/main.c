@@ -31,6 +31,22 @@ FILE *BindScanFd(yyscan_t scanner,char *name)
     return fd;
 }
 
+char aMemIn[100] = "(~A->~B)->(K->A);";
+FILE *BindMemFd(yyscan_t scanner,char *name)
+{
+    FILE *fd = NULL;
+    if (!(fd = fmemopen(name, strlen(name),"r")))
+    {
+        printf("fopen %s error %p\n",name,fd);
+        exit(0);
+    }
+    else
+    {
+        yyset_in(fd, scanner);
+    }
+    return fd;
+}
+
 int main(int argc, char** argv) {
 
    int token;
@@ -48,6 +64,10 @@ int main(int argc, char** argv) {
 
    InitTheoremSet();
    fd = BindScanFd(scanner,"in.sh");
+//   char *test = malloc(100);
+//   strcpy(test,aMemIn);
+//   fd = BindMemFd(scanner,test);//test
+
 //   pParse = (AstParse *)malloc(sizeof(AstParse));
 //   memset(pParse,0,sizeof(AstParse));
    pParse = CreatAstParse();
@@ -94,17 +114,18 @@ int main(int argc, char** argv) {
 	   }
    }
    printf("end %d %s\n\n",token,yyget_text(scanner));
+   yylex_destroy(scanner);
+   fclose(fd);
 
    //GenBasicProp(pParse);
   // SubstPropTest(pParse,ppTest);
-   //SubstSingleTest(pParse,theoremset.data);
+  // SubstSingleTest(pParse,theoremset.data);
    SubstMpTest(pParse,theoremset.data);
    for(int i=0;i<3;i++){
        FreeAstNode(pParse,pParse->apAxiom[i]);
    }
-   yylex_destroy(scanner);
    PropParseFree(pLemon, free);
-   fclose(fd);
+
    //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
