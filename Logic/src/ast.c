@@ -101,7 +101,7 @@ void AstToString(AstParse *pParse,TokenInfo *pAst,char *buf)
         else{
             sprintf(buf+strlen(buf),"->");
         }
-        if(nPrintSymb%15==0){
+        if(nPrintSymb%10==0){
             sprintf(buf+strlen(buf),"\n");
         }
         AstToString(pParse,pAst->pRight,buf);
