@@ -316,6 +316,8 @@ AstParse *CreatAstParse(void){
 
     pParse = (AstParse *)malloc(sizeof(AstParse));
     memset(pParse,0,sizeof(AstParse));
+    pParse->pDb = (DbInfo*)malloc(sizeof(DbInfo));
+    pParse->pDb->db = CreatSqliteConn("test.db");
     for(i=0;i<3;i++){
         pParse->apAxiom[i] = NewNode(pParse);
         pParse->apAxiom[i]->symb = aNum[i];
@@ -324,8 +326,6 @@ AstParse *CreatAstParse(void){
         pParse->apAxiom[i]->nSymbLen = 1;
         NewSymbString(pParse,pParse->apAxiom[i]);
     }
-    pParse->pDb = (DbInfo*)malloc(sizeof(DbInfo));
-    pParse->pDb->db = CreatSqliteConn("test.db");
 
     return pParse;
 }
@@ -350,6 +350,13 @@ void WritePropStr(
     strcpy(apBuf[2],op);
     AstToString(pParse,pC,apBuf[3]);
     WritePropToDb(pParse,apBuf);
+}
+
+void WriteAxiomStr(AstParse *pParse,TokenInfo *pA)
+{
+    char buf[PROP_STR_LEN] = {0};
+    AstToString(pParse,pA,buf);
+    WriteAxiomToDb(pParse,buf);
 }
 
 void NewMemPool(AstParse *pParse,int len)

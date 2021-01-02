@@ -1151,6 +1151,9 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         SetSameNode(pParse,&ppTest[i],ppTemp);
         printf("num:%d\n",i+1);
         PrintAst(pParse,theoremset.data[i]);
+        BeginSqliteWrite(pParse);
+        WriteAxiomStr(pParse,ppTest[i]);
+        EndSqliteWrite(pParse);
     }
 
     for(i=3;i<pParse->axiom_num;i++)

@@ -69,5 +69,6 @@ void WritePropStr(
         TokenInfo *pB,
         TokenInfo *pC,
         char *op);
+void WriteAxiomStr(AstParse *pParse,TokenInfo *pA);
 
 #endif /* AST_H_ */

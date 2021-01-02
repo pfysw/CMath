@@ -25,5 +25,6 @@ void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table);
 void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN]);
 void BeginSqliteWrite(AstParse *pParse);
 void EndSqliteWrite(AstParse *pParse);
+void WriteAxiomToDb(AstParse *pParse,char *zProp);
 
 #endif /* DB_H_ */

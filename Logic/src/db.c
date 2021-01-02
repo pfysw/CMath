@@ -244,6 +244,34 @@ void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN])
     sqlite3_reset(stmt);
 }
 
+void WriteAxiomToDb(AstParse *pParse,char *zProp)
+{
+    int rc;
+    sqlite3_stmt *stmt;
+
+    if(pParse->pDb->db==NULL){
+        return;
+    }
+    stmt = pParse->pDb->stmt;
+
+    rc = sqlite3_bind_text(stmt, 1, zProp, strlen(zProp), NULL);
+    if(rc!=SQLITE_OK ){
+        printf("sqlite3_bind_text error %d\n",rc);
+    }
+    for(int i=1;i<4;i++){
+        rc = sqlite3_bind_null(stmt, i+1);
+        if(rc!=SQLITE_OK ){
+            printf("sqlite3_bind_null error %d\n",rc);
+        }
+    }
+
+    rc = sqlite3_step(stmt);
+    if(rc!=SQLITE_DONE ){
+        printf("sqlite3_step error %d\n",rc);
+    }
+    sqlite3_reset(stmt);
+}
+
 void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table)
 {
     char * pErrMsg = 0;
