@@ -62,6 +62,59 @@ void PrintAst(AstParse *pParse,TokenInfo *pAst)
     }
 }
 
+
+void AstToString(AstParse *pParse,TokenInfo *pAst,char *buf)
+{
+    static int cnt = 0;
+    static int nPrintSymb = 0;
+    cnt++;
+    if(cnt==1){
+        nPrintSymb = 0;
+        buf[0] = '\0';
+    }
+    assert(pAst!=NULL);
+    if( pAst->type==PROP_SYMB )
+    {
+        if(pAst->zSymb!=NULL){
+            //todo 如果以后这个函数被大量调用，那么strlen可能会影响性能
+            sprintf(buf+strlen(buf),"%s",pAst->zSymb);
+        }
+        else{
+            sprintf(buf+strlen(buf),"%c",pAst->symb);
+        }
+        nPrintSymb++;
+    }
+    else if( pAst->type==PROP_NEG )
+    {
+        sprintf(buf+strlen(buf),"~");
+        AstToString(pParse,pAst->pLeft,buf);
+    }
+    else
+    {
+        assert(pAst->type==PROP_IMPL);
+        sprintf(buf+strlen(buf),"(");
+        AstToString(pParse,pAst->pLeft,buf);
+        if(pAst->zSymb!=NULL){
+            sprintf(buf+strlen(buf),"%s",pAst->zSymb);
+        }
+        else{
+            sprintf(buf+strlen(buf),"->");
+        }
+        if(nPrintSymb%15==0){
+            sprintf(buf+strlen(buf),"\n");
+        }
+        AstToString(pParse,pAst->pRight,buf);
+        sprintf(buf+strlen(buf),")");
+
+    }
+    cnt--;
+    if(!cnt)
+    {
+        sprintf(buf+strlen(buf),";");
+        nPrintSymb = 0;
+    }
+}
+
 void PrintSubstAst(AstParse *pParse,TokenInfo *pAst)
 {
     static int cnt = 0;

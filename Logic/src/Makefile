@@ -13,7 +13,7 @@ CCFLAGS=-g -Wall
 all:${TARGET}
 
 ${TARGET}: ${OBJ} ${OBJ_DIR}/prop.lemon.o
-	${CC}  $^ -o $@
+	${CC}  $^ -lsqlite3 -L. -o $@
 	@echo "Compile done."
     
 

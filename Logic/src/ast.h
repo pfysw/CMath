@@ -9,6 +9,7 @@
 #define AST_H_
 #include "token.h"
 #include "mem5.h"
+#include "sqlite3.h"
 
 typedef struct AstParse AstParse;
 struct AstParse
@@ -26,6 +27,13 @@ struct AstParse
     int test;
 };
 
+typedef struct DbInfo DbInfo;
+struct DbInfo
+{
+    sqlite3 *db;
+    sqlite3_stmt *stmt;
+};
+
 void PrintAst(AstParse *pParse,TokenInfo *pAst);
 void SetSymb(AstParse *pParse,TokenInfo *pB);
 TokenInfo *NewNode(AstParse *pParse);
@@ -40,6 +48,7 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p);
 void FreeAstTree( AstParse *pParse,TokenInfo **ppAst,TokenInfo **ppTemp);
 void PrintAstAddr(AstParse *pParse,TokenInfo *pAst);
 void PrintSubstAst(AstParse *pParse,TokenInfo *pAst);
+void AstToString(AstParse *pParse,TokenInfo *pAst,char *buf);
 TokenInfo *CopyAstTree(
         AstParse *pParse,
         TokenInfo *pSrc,
