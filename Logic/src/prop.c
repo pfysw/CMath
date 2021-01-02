@@ -11,6 +11,7 @@
 #include <assert.h>
 #include "prop.h"
 #include "propseq.h"
+#include "db.h"
 
 typedef struct PermData
 {
@@ -1154,6 +1155,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
 
     for(i=3;i<pParse->axiom_num;i++)
     {
+        BeginSqliteWrite(pParse);
         NewMemPool(pParse,1000000);
         log_a("old i %d",i+1);
         if(i==18){
@@ -1176,6 +1178,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         PrintAst(pParse,ppTest[i]);
         SetSameNode(pParse,&ppTest[i],ppTemp);
         FreeMemPool(pParse);
+        EndSqliteWrite(pParse);
     }
     for(; i<pParse->all_num; i++)
     {

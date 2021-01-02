@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 //   char buf[100];
 //   AstToString(pParse,pParse->pRoot,buf);
 //   printf("test:%s\n",buf);
-//   sqlite3 *test_db = CreatSqliteConn("test.db");
+//   sqlite3 *test_db = CreatSqliteConn("test1.db");
 //   SqliteWriteNode(pParse,test_db,buf);
 //   SqliteWriteNode(pParse,test_db,"ssp");
 //   SqliteReadTable(pParse,test_db,"TheoremSet");
@@ -138,6 +138,7 @@ int main(int argc, char** argv) {
    }
    PropParseFree(pLemon, free);
 
+   SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet");
    //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
@@ -149,6 +150,7 @@ int main(int argc, char** argv) {
        }
    }
 #endif
+   CloseAstParse(pParse);
    printf("%ld\n",sizeof(TokenInfo));
    return 0;
 }

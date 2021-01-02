@@ -9,7 +9,9 @@
 #define AST_H_
 #include "token.h"
 #include "mem5.h"
-#include "sqlite3.h"
+
+#define PROP_STR_LEN 1000
+typedef struct DbInfo DbInfo;
 
 typedef struct AstParse AstParse;
 struct AstParse
@@ -18,6 +20,7 @@ struct AstParse
     TokenInfo * apAxiom[3];
     TokenInfo **ppTemp;//存在递归时的共享变量
     Mem5Global *pMem;
+    DbInfo *pDb;
     u8 bDiscard;
     int n;
     int axiom_num;
@@ -25,13 +28,6 @@ struct AstParse
     int malloc_cnt;
     int free_cnt;
     int test;
-};
-
-typedef struct DbInfo DbInfo;
-struct DbInfo
-{
-    sqlite3 *db;
-    sqlite3_stmt *stmt;
 };
 
 void PrintAst(AstParse *pParse,TokenInfo *pAst);
@@ -66,5 +62,11 @@ TokenInfo * NewNumNode(AstParse *pParse,int num);
 
 void NewMemPool(AstParse *pParse,int len);
 void FreeMemPool(AstParse *pParse);
+void CloseAstParse(AstParse *pParse);
+void WritePropStr(
+        AstParse *pParse,
+        TokenInfo *pA,
+        TokenInfo *pB,
+        TokenInfo *pC);
 
 #endif /* AST_H_ */

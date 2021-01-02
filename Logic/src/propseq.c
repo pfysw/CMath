@@ -5,6 +5,7 @@
 #include <assert.h>
 #include "prop.h"
 #include "propseq.h"
+#include "db.h"
 
 TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo **ppTest,
@@ -63,6 +64,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
                 else{
                     pSeq->pTheorem = PropMpSubst(pParse,pLeft,pRight);
                 }
+                WritePropStr(pParse,pLeft,pRight,pSeq->pTheorem);
     #if 1//def MP_DEBUG
                 log_a("mp %d",pSeq->op);
                 PrintAst(pParse,pSeq->pTheorem);

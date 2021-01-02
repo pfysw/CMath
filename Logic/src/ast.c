@@ -9,6 +9,7 @@
 #include <string.h>
 #include "ast.h"
 #include <assert.h>
+#include "db.h"
 
 u8 testbuf[10000] = {0};
 void PrintAst(AstParse *pParse,TokenInfo *pAst)
@@ -323,8 +324,30 @@ AstParse *CreatAstParse(void){
         pParse->apAxiom[i]->nSymbLen = 1;
         NewSymbString(pParse,pParse->apAxiom[i]);
     }
+    pParse->pDb = (DbInfo*)malloc(sizeof(DbInfo));
+    pParse->pDb->db = CreatSqliteConn("test.db");
 
     return pParse;
+}
+
+void CloseAstParse(AstParse *pParse)
+{
+    sqlite3_close(pParse->pDb->db);
+    free(pParse->pDb);
+    free(pParse);
+}
+
+void WritePropStr(
+        AstParse *pParse,
+        TokenInfo *pA,
+        TokenInfo *pB,
+        TokenInfo *pC)
+{
+    char apBuf[3][PROP_STR_LEN] = {0};
+    AstToString(pParse,pA,apBuf[0]);
+    AstToString(pParse,pB,apBuf[1]);
+    AstToString(pParse,pC,apBuf[2]);
+    WritePropToDb(pParse,apBuf);
 }
 
 void NewMemPool(AstParse *pParse,int len)
