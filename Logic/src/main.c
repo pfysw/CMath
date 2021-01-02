@@ -120,15 +120,6 @@ int main(int argc, char** argv) {
    yylex_destroy(scanner);
    fclose(fd);
 
-//   char buf[100];
-//   AstToString(pParse,pParse->pRoot,buf);
-//   printf("test:%s\n",buf);
-//   sqlite3 *test_db = CreatSqliteConn("test1.db");
-//   SqliteWriteNode(pParse,test_db,buf);
-//   SqliteWriteNode(pParse,test_db,"ssp");
-//   SqliteReadTable(pParse,test_db,"TheoremSet");
-//   exit(0);
-
    //GenBasicProp(pParse);
   // SubstPropTest(pParse,ppTest);
   // SubstSingleTest(pParse,theoremset.data);
@@ -138,7 +129,7 @@ int main(int argc, char** argv) {
    }
    PropParseFree(pLemon, free);
 
-   SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet");
+  // SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet");
    //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);

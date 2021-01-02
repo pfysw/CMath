@@ -341,12 +341,14 @@ void WritePropStr(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB,
-        TokenInfo *pC)
+        TokenInfo *pC,
+        char *op)
 {
-    char apBuf[3][PROP_STR_LEN] = {0};
+    char apBuf[4][PROP_STR_LEN] = {0};
     AstToString(pParse,pA,apBuf[0]);
     AstToString(pParse,pB,apBuf[1]);
-    AstToString(pParse,pC,apBuf[2]);
+    strcpy(apBuf[2],op);
+    AstToString(pParse,pC,apBuf[3]);
     WritePropToDb(pParse,apBuf);
 }
 

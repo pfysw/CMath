@@ -50,22 +50,25 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             {
                 if(pSeq->op==OP_HS){
                     pSeq->pTheorem = PropMpSubst(pParse,pRight,ppTest[0]);
-                    log_a("mp1 %d",pSeq->op);
-                    PrintAst(pParse,pSeq->pTheorem);
+//                    log_a("mp1 %d",pSeq->op);
+//                    PrintAst(pParse,pSeq->pTheorem);
+                    //WritePropStr(pParse,pRight,ppTest[0],pSeq->pTheorem);
                     pTemp = pSeq->pTheorem;
                     pSeq->pTheorem = PropMpSubst(pParse,pTemp,ppTest[1]);
-                    log_a("mp2 %d",pSeq->op);
-                    PrintAst(pParse,pSeq->pTheorem);
+//                    log_a("mp2 %d",pSeq->op);
+//                    PrintAst(pParse,pSeq->pTheorem);
+                   // WritePropStr(pParse,pTemp,ppTest[1],pSeq->pTheorem);
                     FreeAstTree(pParse,&pTemp,ppTemp);
                     pTemp = pSeq->pTheorem;
                     pSeq->pTheorem = PropMpSubst(pParse,pLeft,pTemp);
                     FreeAstTree(pParse,&pTemp,ppTemp);
+                    WritePropStr(pParse,pSeq->pTheorem,pLeft,pRight,">>");
                 }
                 else{
                     pSeq->pTheorem = PropMpSubst(pParse,pLeft,pRight);
+                    WritePropStr(pParse,pSeq->pTheorem,pLeft,pRight,">");
                 }
-                WritePropStr(pParse,pLeft,pRight,pSeq->pTheorem);
-    #if 1//def MP_DEBUG
+    #ifdef MP_DEBUG
                 log_a("mp %d",pSeq->op);
                 PrintAst(pParse,pSeq->pTheorem);
     #endif

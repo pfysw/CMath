@@ -10,7 +10,7 @@
 #include "token.h"
 #include "mem5.h"
 
-#define PROP_STR_LEN 1000
+#define PROP_STR_LEN 200
 typedef struct DbInfo DbInfo;
 
 typedef struct AstParse AstParse;
@@ -67,6 +67,7 @@ void WritePropStr(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB,
-        TokenInfo *pC);
+        TokenInfo *pC,
+        char *op);
 
 #endif /* AST_H_ */

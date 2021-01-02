@@ -10,6 +10,8 @@
 
 //SQLite Backup API
 
+#define DB_DISABLE 0
+
 /*
 ** This function is used to load the contents of a database file on disk
 ** into the "main" database of open database connection pInMemory, or
@@ -137,74 +139,6 @@ int backupDb(
   return rc;
 }
 
-int sqlitetest(void)
-{
-   // char *db_name = "E:/devc++/sqlite3/sqlite3/test.db";
-    char *db_name = "test.db";
-    setbuf(stdout,0);
-    if ( !access(db_name,0) )
-    {
-        printf("存在lk\n");
-        remove(db_name);
-        sleep(1);
-    }
-    else
-    {
-        if ( !access("D:/devc++/cmath/CMath/Logic/prop.exe.stackdump",0) ){
-            printf("sdsdsd \n");
-        }
-        printf("不存在!\n");
-    }
-  const char * sSQL1 = "create table users(userid varchar(20) PRIMARY KEY, age int, birthday datetime);";
-  char * pErrMsg = 0;
-  int result = 0;
-  // 连接数据库
-  sqlite3 * db = 0;
-  sqlite3_config(SQLITE_CONFIG_URI,1);
- // int ret = sqlite3_open("file://localhost/E:/devc++/sqlite3/sqlite3/test.db?vfs=win32", &db);
- // int ret = sqlite3_open(db_name, &db);
-  int ret = sqlite3_open(":memory:", &db);
-  if( ret != SQLITE_OK ) {
-    fprintf(stderr, "无法打开数据库: %s", sqlite3_errmsg(db));
-    return(1);
-  }
-  printf("数据库连接成功!\n");
-  printf("成功!\n");
-  // 执行建表SQL
-  sqlite3_exec( db, sSQL1, 0, 0, &pErrMsg );
-  if( ret != SQLITE_OK ){
-    fprintf(stderr, "SQL error: %s\n", pErrMsg);
-    sqlite3_free(pErrMsg);
-  }
-
-  // 执行插入记录SQL
-  result = sqlite3_exec( db, "insert into users values('张三',25,'2011-7-23');", 0, 0, &pErrMsg);
-  if(result == SQLITE_OK){
-    printf("插入数据成功\n");
-  }
-  result = sqlite3_exec( db, "insert into users values('李四',20,'2012-9-20');", 0, 0, &pErrMsg);
-  if(result == SQLITE_OK){
-    printf("插入数据成功\n");
-  }
-
-  // 查询数据表
-  printf("查询数据库内容\n");
-  sqlite3_exec( db, "select * from users;", select_callback, 0, &pErrMsg);
-  sqlite3 * mem_db;
-  //ret = sqlite3_open(":memory:", &mem_db);
- // loadOrSaveDb(mem_db,"test.db",0);
-  ret = sqlite3_open(":memory:", &mem_db);
-  sqlite3_exec(mem_db, "ATTACH DATABASE ':memory:' AS aux1;", 0, 0, &pErrMsg);
-  printf("mem\n");
-  sqlite3_exec(mem_db, "select * from aux1.users;", select_callback, 0, &pErrMsg);
-  // 关闭数据库
-  sqlite3_close(db);
-  db = 0;
-  printf("数据库关闭成功!\n");
-
-  return 0;
-}
-
 int select_callback(void * data, int col_count, char ** col_values, char ** col_Name)
 {
   // 每条记录回调一次该函数,有多少条就回调多少次
@@ -223,10 +157,14 @@ sqlite3 * CreatSqliteConn(char *db_name)
     int rc = 0;
     char sSql[SQL_LEN] = {0};
     char * pErrMsg = 0;
-
+#if DB_DISABLE
+    return NULL;
+#endif
     if ( !access(db_name,0) )
     {
-        printf("存在lk\n");
+        //printf("存在 退出\n");
+       // exit(0);
+        printf("存在 删除\n");
         remove(db_name);
         sleep(1);
     }
@@ -235,8 +173,8 @@ sqlite3 * CreatSqliteConn(char *db_name)
       fprintf(stderr, "open file: %s", sqlite3_errmsg(db));
       return NULL;
     }
-    sprintf(sSql,"CREATE TABLE TheoremSet(condition TEXT,theorem TEXT,"
-                 "gen TEXT,primary key(gen,theorem))");
+    sprintf(sSql,"CREATE TABLE TheoremSet(gen TEXT,left TEXT,op TEXT,"
+                 "right TEXT,primary key(gen,left))");
     rc = sqlite3_exec( db, sSql, 0, 0, &pErrMsg );
     if(rc!= SQLITE_OK ){
       fprintf(stderr, "CREATE TABLE error: %s\n", pErrMsg);
@@ -253,8 +191,12 @@ void BeginSqliteWrite(AstParse *pParse)
     sqlite3 *db = pParse->pDb->db;
     sqlite3_stmt *stmt;
 
+    if(db==NULL){
+        return;
+    }
+
     sqlite3_exec(db,"begin;",0,0,0);
-    sprintf(sql,"insert into TheoremSet values(?,?,?)");
+    sprintf(sql,"insert into TheoremSet values(?,?,?,?)");
     rc = sqlite3_prepare_v2(db,sql,strlen(sql),&stmt,0);
     if(rc!=SQLITE_OK ){
         printf("sqlite3_prepare_v2 error %d\n",rc);
@@ -268,6 +210,9 @@ void EndSqliteWrite(AstParse *pParse)
     sqlite3 *db = pParse->pDb->db;
     sqlite3_stmt *stmt = pParse->pDb->stmt;
 
+    if(db==NULL){
+        return;
+    }
     sqlite3_finalize(stmt);
     pParse->pDb->stmt = NULL;
     rc = sqlite3_exec(db,"commit;",0,0,0);
@@ -279,9 +224,13 @@ void EndSqliteWrite(AstParse *pParse)
 void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN])
 {
     int rc;
-    sqlite3_stmt *stmt = pParse->pDb->stmt;
+    sqlite3_stmt *stmt;
 
-    for(int i=0;i<3;i++){
+    if(pParse->pDb->db==NULL){
+        return;
+    }
+    stmt = pParse->pDb->stmt;
+    for(int i=0;i<4;i++){
         rc = sqlite3_bind_text(stmt, i+1, azProp[i], strlen(azProp[i]), NULL);
         if(rc!=SQLITE_OK ){
             printf("sqlite3_bind_text error %d\n",rc);
@@ -293,42 +242,6 @@ void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN])
         printf("sqlite3_step error %d\n",rc);
     }
     sqlite3_reset(stmt);
-}
-
-void SqliteWriteNode(AstParse *pParse,sqlite3 *db,char *zProp)
-{
-    sqlite3_stmt *stmt;
-    char sql[SQL_LEN] = {0};
-    int rc;
-
-//    char * pErrMsg = 0;
-//    sprintf(sql,"insert into TheoremSet values('%s')",zProp);
-//    rc = sqlite3_exec( db, sql, 0, 0, &pErrMsg );
-//    if(rc!= SQLITE_OK ){
-//      fprintf(stderr, "write error: %s\n", pErrMsg);
-//      sqlite3_free(pErrMsg);
-//    }
-
-    sprintf(sql,"insert or ignore into TheoremSet values(?,?,?)");
-    rc = sqlite3_prepare_v2(db,sql,strlen(sql),&stmt,0);
-    if(rc!=SQLITE_OK ){
-        printf("sqlite3_prepare_v2 error %d\n",rc);
-    }
-   // zProp = "sadasfsaf";
-    rc = sqlite3_bind_text(stmt, 1, zProp, strlen(zProp), NULL);
-    zProp = "sdsd";
-    rc = sqlite3_bind_text(stmt, 2, zProp, strlen(zProp), NULL);
-    zProp = "kk";
-    rc = sqlite3_bind_text(stmt, 3, zProp, strlen(zProp), NULL);
-    if(rc!=SQLITE_OK ){
-        printf("sqlite3_bind_text error %d\n",rc);
-    }
-    rc = sqlite3_step(stmt);
-    if(rc!=SQLITE_DONE ){
-        printf("sqlite3_step error %d\n",rc);
-    }
-    sqlite3_reset(stmt);
-    sqlite3_finalize(stmt);
 }
 
 void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table)
