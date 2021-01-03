@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include "prop.lemon.h"
 
+//#define FREE_TEST
+
 //#define TK_SEM 100
 typedef unsigned char  u8;
 typedef unsigned int   u32;

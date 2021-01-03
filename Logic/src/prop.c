@@ -80,26 +80,26 @@ int SetSameNode(
         TokenInfo **ppAst,
         TokenInfo **ppTemp)
 {
-    static int n = 0;
-    static int cnt = 0;
     int i;
     int rc;
 
-    if( !cnt )
+    if( !pParse->cnt )
     {
-        n = 0;
+        pParse->n = 0;
     }
-    cnt++;
+    pParse->cnt++;
     if(  (*ppAst)->type==PROP_SYMB )
     {
         rc = 0;
-        for( i=0;i<n;i++ )
+        for( i=0;i<pParse->n;i++ )
         {
             if( isEqualNode((*ppAst),ppTemp[i]) )
             {
                 if(*ppAst!=ppTemp[i])
                 {
-                    FreeAstNode(pParse,(*ppAst));
+                    if(!pParse->usePool){
+                        FreeAstNode(pParse,(*ppAst));
+                    }
                     *ppAst = ppTemp[i];
                 }
                 rc = 1;
@@ -108,7 +108,7 @@ int SetSameNode(
         }
         if( !rc )
         {
-            ppTemp[n++] = *ppAst;
+            ppTemp[pParse->n++] = *ppAst;
         }
     }
     else
@@ -117,8 +117,11 @@ int SetSameNode(
         if( (*ppAst)->type==PROP_IMPL )
             SetSameNode(pParse,&((*ppAst)->pRight),ppTemp);
     }
-    cnt--;
-    return n;
+    pParse->cnt--;
+    if(!pParse->cnt){
+        pParse->usePool = 0;
+    }
+    return pParse->n;
 }
 
 int GetDiffNode(
@@ -1192,6 +1195,17 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         pR = PropGenSeq(pParse,ppTest,ppTest[i]);
         printf("seq %d\n",i+1);
         PrintAst(pParse,pR);
+
+
+        printf("prop %d\n",i+1);
+        pParse->usePool = 1;
+        SetSameNode(pParse,&pR,ppTemp);
+        assert(!pParse->usePool);
+        PropMpSeq(pParse,ppTest,pR);
+        PrintAst(pParse,pR->pTheorem);
+        if(pR->pTheorem!=NULL){
+            FreePropSeq(pParse,pR,ppTemp);
+        }
         FreeMemPool(pParse);
     }
 

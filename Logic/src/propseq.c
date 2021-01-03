@@ -50,14 +50,8 @@ TokenInfo * PropMpSeq(AstParse *pParse,
             {
                 if(pSeq->op==OP_HS){
                     pSeq->pTheorem = PropMpSubst(pParse,pRight,ppTest[0]);
-//                    log_a("mp1 %d",pSeq->op);
-//                    PrintAst(pParse,pSeq->pTheorem);
-                    //WritePropStr(pParse,pRight,ppTest[0],pSeq->pTheorem);
                     pTemp = pSeq->pTheorem;
                     pSeq->pTheorem = PropMpSubst(pParse,pTemp,ppTest[1]);
-//                    log_a("mp2 %d",pSeq->op);
-//                    PrintAst(pParse,pSeq->pTheorem);
-                   // WritePropStr(pParse,pTemp,ppTest[1],pSeq->pTheorem);
                     FreeAstTree(pParse,&pTemp,ppTemp);
                     pTemp = pSeq->pTheorem;
                     pSeq->pTheorem = PropMpSubst(pParse,pLeft,pTemp);

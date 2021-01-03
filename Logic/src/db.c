@@ -10,7 +10,7 @@
 
 //SQLite Backup API
 
-#define DB_DISABLE 0
+#define DB_DISABLE 1
 
 /*
 ** This function is used to load the contents of a database file on disk

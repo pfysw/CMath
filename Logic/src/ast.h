@@ -22,7 +22,9 @@ struct AstParse
     Mem5Global *pMem;
     DbInfo *pDb;
     u8 bDiscard;
+    u8 usePool;
     int n;
+    int cnt;
     int axiom_num;
     int all_num;
     int malloc_cnt;

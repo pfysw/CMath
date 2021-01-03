@@ -188,6 +188,10 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
     {
         if(p->zSymb!=NULL){
 #ifdef FREE_TEST
+            if(testbuf[p->malloc_string]==0){
+                printf("refree str %d\n",p->malloc_string);
+                exit(0);
+            }
             testbuf[p->malloc_string] = 0;
 #endif
             free(p->zSymb);
@@ -196,6 +200,10 @@ void FreeAstNode(AstParse *pParse,TokenInfo *p)
         }
     }
 #ifdef FREE_TEST
+    if(testbuf[p->malloc_flag]==0){
+        printf("refree %d\n",p->malloc_flag);
+        exit(0);
+    }
     testbuf[p->malloc_flag] = 0;
     if(p->malloc_flag==2282){
         log_a("free");
