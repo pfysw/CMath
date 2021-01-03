@@ -34,12 +34,12 @@ FILE *BindScanFd(yyscan_t scanner,char *name)
 }
 
 char aMemIn[100] = "(~A->~B)->(K->A);";
-FILE *BindMemFd(yyscan_t scanner,char *name)
+FILE *BindMemFd(yyscan_t scanner,char *buf, int len)
 {
     FILE *fd = NULL;
-    if (!(fd = fmemopen(name, strlen(name),"r")))
+    if (!(fd = fmemopen(buf, len,"r")))
     {
-        printf("fopen %s error %p\n",name,fd);
+        printf("fopen %s error %p\n",buf,fd);
         exit(0);
     }
     else
@@ -50,13 +50,75 @@ FILE *BindMemFd(yyscan_t scanner,char *name)
 }
 
 
+void Token2AstTree(
+        AstParse *pParse,
+        yyscan_t scanner,
+        Vector *pV)
+{
+    TokenInfo *pToken;
+    void* pLemon = PropParseAlloc(malloc);
+    char *zSymb;
+    int token;
+    int idx = 0;
+
+    pToken = NewNode(pParse);
+    token = yylex(scanner);
+    zSymb = yyget_text(scanner);
+    while (token)
+    {
+        pToken->zSymb = zSymb;
+        pToken->nSymbLen = yyget_leng(scanner);
+        pToken->symb = pToken->zSymb[0];
+        PropParse(pLemon, token, pToken,pParse);
+        //PropParseTrace(stdout, "");
+        if( token==TK_SEM )
+        {
+            PropParse(pLemon, 0, 0,pParse);
+//           log_a("----- %d -----",idx);
+//           PrintAst(pParse,pParse->pRoot);//
+            idx++;
+            InsertVector(pV,pParse->pRoot);
+        }
+        token = yylex(scanner);
+        if( token )
+        {
+            zSymb = yyget_text(scanner);
+            if(!memcmp(zSymb,"formula",7)){
+                 pParse->axiom_num = idx;
+                 token = yylex(scanner);//jump formula
+                 token = yylex(scanner);//jump ;
+                 zSymb = yyget_text(scanner);
+            }
+            if(!memcmp(zSymb,"end",3)){
+                pParse->all_num = idx;
+                break;
+            }
+            pToken = NewNode(pParse);
+           continue;
+        }
+    }
+    printf("end %d %s\n",token,yyget_text(scanner));
+    PropParseFree(pLemon, free);
+}
+
+void GetPropStrParse(AstParse *pParse,char *buf,Vector *pV,int len)
+{
+    FILE *fd = NULL;
+    yyscan_t scanner;
+    yylex_init(&scanner);
+    fd = BindMemFd(scanner,buf,len);
+    Token2AstTree(pParse,scanner,pV);
+    yylex_destroy(scanner);
+    fclose(fd);
+}
+
 int main(int argc, char** argv) {
 
    int token;
    yyscan_t scanner;
    FILE *fd = NULL;
    TokenInfo *pToken;
-   void* pLemon = PropParseAlloc(malloc);
+   void* pLemon;
    AstParse *pParse;
   // TokenInfo *ppTest[100];
    int idx = 0;
@@ -65,15 +127,15 @@ int main(int argc, char** argv) {
    setbuf(stdout, NULL);
    yylex_init(&scanner);
 
-   InitTheoremSet();
    fd = BindScanFd(scanner,"in.sh");
 //   char *test = malloc(100);
 //   strcpy(test,aMemIn);
 //   fd = BindMemFd(scanner,test);//test
 
-//   pParse = (AstParse *)malloc(sizeof(AstParse));
-//   memset(pParse,0,sizeof(AstParse));
    pParse = CreatAstParse();
+   InitTheoremSet(pParse);
+#if 0
+   pLemon = PropParseAlloc(malloc);
    pToken = NewNode(pParse);
    token = yylex(scanner);
    zSymb = yyget_text(scanner);
@@ -119,6 +181,11 @@ int main(int argc, char** argv) {
    printf("end %d %s\n\n",token,yyget_text(scanner));
    yylex_destroy(scanner);
    fclose(fd);
+   PropParseFree(pLemon, free);
+#endif
+   Token2AstTree(pParse,scanner,&theoremset);
+   yylex_destroy(scanner);
+   fclose(fd);
 
    //GenBasicProp(pParse);
   // SubstPropTest(pParse,ppTest);
@@ -127,10 +194,6 @@ int main(int argc, char** argv) {
    for(int i=0;i<3;i++){
        FreeAstNode(pParse,pParse->apAxiom[i]);
    }
-   PropParseFree(pLemon, free);
-
-  // SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet");
-   //FreeAstTree(pParse,&pParse->pRoot,ppTemp);
    log_a("malloc %d free %d",pParse->malloc_cnt,
            pParse->free_cnt);
 #ifdef FREE_TEST

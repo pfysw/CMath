@@ -515,6 +515,18 @@ void InsertVector(Vector *pV,TokenInfo *pData)
     }
 }
 
+void FreeVector(AstParse *pParse,Vector *pV)
+{
+    int i;
+    for(i=0; i<pV->n; i++)
+    {
+        FreeAstTree(pParse,&pV->data[i],pParse->ppTemp);
+    }
+    pV->n = 0;
+    free(pV->data);
+    pParse->free_cnt++;
+}
+
 void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
 {
     assert(pAst!=NULL);
@@ -548,11 +560,12 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
 Vector theoremset;
 u8 aCnt[1000] = {0};
 
-void InitTheoremSet(void)
+void InitTheoremSet(AstParse *pParse)
 {
     memset(&theoremset,0,sizeof(Vector));
     theoremset.size = 100;
     theoremset.data = malloc(theoremset.size*sizeof(TokenInfo **));
+    pParse->malloc_cnt++;
 }
 
 void SetRepeatFlag(int i,int j,int hs,TokenInfo *pCopy)
@@ -1159,9 +1172,9 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         EndSqliteWrite(pParse);
     }
 
+    BeginSqliteWrite(pParse);
     for(i=3;i<pParse->axiom_num;i++)
     {
-        BeginSqliteWrite(pParse);
         NewMemPool(pParse,1000000);
         log_a("old i %d",i+1);
         if(i==18){
@@ -1184,7 +1197,6 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         PrintAst(pParse,ppTest[i]);
         SetSameNode(pParse,&ppTest[i],ppTemp);
         FreeMemPool(pParse);
-        EndSqliteWrite(pParse);
     }
     for(; i<pParse->all_num; i++)
     {
@@ -1196,7 +1208,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         printf("seq %d\n",i+1);
         PrintAst(pParse,pR);
 
-
+        //把序列重新生成定理
         printf("prop %d\n",i+1);
         pParse->usePool = 1;
         SetSameNode(pParse,&pR,ppTemp);
@@ -1208,13 +1220,27 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         }
         FreeMemPool(pParse);
     }
+    EndSqliteWrite(pParse);
 
    // for(i=0; i<pParse->all_num; i++)
+//    for(i=0; i<theoremset.n; i++)
+//    {
+//        FreeAstTree(pParse,&ppTest[i],ppTemp);
+//    }
+//    theoremset.n = 0;
+//    free(theoremset.data);
+//    pParse->free_cnt++;
+    FreeVector(pParse,&theoremset);
+    InitTheoremSet(pParse);
+    SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet",&theoremset);
+    ppTest =  (TokenInfo **)theoremset.data;
     for(i=0; i<theoremset.n; i++)
     {
-        FreeAstTree(pParse,&ppTest[i],ppTemp);
+        PrintAst(pParse,ppTest[i]);
+        //FreeAstTree(pParse,&ppTest[i],ppTemp);
     }
+    FreeVector(pParse,&theoremset);
+    //theoremset.n = 0;
     pParse->ppTemp = NULL;
-
 
 }

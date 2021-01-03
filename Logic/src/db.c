@@ -10,7 +10,7 @@
 
 //SQLite Backup API
 
-#define DB_DISABLE 1
+#define DB_DISABLE 0
 
 /*
 ** This function is used to load the contents of a database file on disk
@@ -142,12 +142,9 @@ int backupDb(
 int select_callback(void * data, int col_count, char ** col_values, char ** col_Name)
 {
   // 每条记录回调一次该函数,有多少条就回调多少次
-  int i;
-  for( i=0; i < col_count; i++){
-    printf( "%s = %s\n", col_Name[i], col_values[i] == 0 ? "NULL" : col_values[i] );
-  }
+  printf( "%s = %s\n",col_values[0],col_values[1] );
 
-  return 0;
+  return 1;
 }
 
 sqlite3 * CreatSqliteConn(char *db_name)
@@ -164,9 +161,9 @@ sqlite3 * CreatSqliteConn(char *db_name)
     {
         //printf("存在 退出\n");
        // exit(0);
-        printf("存在 删除\n");
-        remove(db_name);
-        sleep(1);
+//        printf("存在 删除\n");
+//        remove(db_name);
+//        sleep(1);
     }
     rc = sqlite3_open(db_name, &db);
     if( rc != SQLITE_OK ) {
@@ -177,7 +174,7 @@ sqlite3 * CreatSqliteConn(char *db_name)
                  "right TEXT,primary key(gen,left))");
     rc = sqlite3_exec( db, sSql, 0, 0, &pErrMsg );
     if(rc!= SQLITE_OK ){
-      fprintf(stderr, "CREATE TABLE error: %s\n", pErrMsg);
+      fprintf(stderr, "CREATE TABLE error[%d]: %s\n",rc, pErrMsg);
       sqlite3_free(pErrMsg);
     }
     return db;
@@ -238,8 +235,11 @@ void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN])
     }
 
     rc = sqlite3_step(stmt);
-    if(rc!=SQLITE_DONE ){
+    if(rc!=SQLITE_DONE && rc!=SQLITE_CONSTRAINT ){
         printf("sqlite3_step error %d\n",rc);
+    }
+    else if(rc==SQLITE_DONE){
+        printf("sqlite3_step insert success\n");
     }
     sqlite3_reset(stmt);
 }
@@ -259,23 +259,57 @@ void WriteAxiomToDb(AstParse *pParse,char *zProp)
         printf("sqlite3_bind_text error %d\n",rc);
     }
     for(int i=1;i<4;i++){
-        rc = sqlite3_bind_null(stmt, i+1);
+        rc = sqlite3_bind_text(stmt, i+1, "no", strlen("no"), NULL);
         if(rc!=SQLITE_OK ){
             printf("sqlite3_bind_null error %d\n",rc);
         }
     }
 
     rc = sqlite3_step(stmt);
-    if(rc!=SQLITE_DONE ){
+    if(rc!=SQLITE_DONE && rc!=SQLITE_CONSTRAINT){
         printf("sqlite3_step error %d\n",rc);
     }
     sqlite3_reset(stmt);
 }
 
-void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table)
+void SqliteReadDemo(AstParse *pParse,sqlite3 *db,char *table)
 {
     char * pErrMsg = 0;
     char sql[SQL_LEN] = {0};
-    sprintf(sql,"select * from %s",table);
+    sprintf(sql,"select rowid,gen from %s ORDER BY rowid",table);
     sqlite3_exec( db, sql, select_callback, 0, &pErrMsg);
+}
+
+void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table,Vector *pV)
+{
+    char * pErrMsg = 0;
+    char sql[SQL_LEN] = {0};
+    int nRow,nCol;
+    char **dbResult;
+    int rc;
+    char *pMemFile;
+    int i;
+    int offset = 0;
+    int nLen;
+    int nFile = 0;
+
+    sprintf(sql,"select rowid,gen from %s ORDER BY rowid",table);
+    rc = sqlite3_get_table(db, sql, &dbResult, &nRow, &nCol, &pErrMsg);
+    if(rc!= SQLITE_OK ){
+      fprintf(stderr, "SELECT error[%d]: %s\n",rc, pErrMsg);
+      sqlite3_free(pErrMsg);
+    }
+    printf("row %d\n",nRow);
+    nFile = nRow*PROP_STR_LEN;
+    pMemFile = (char *)malloc(nFile);
+    memset(pMemFile,0,nFile);
+    for(i=1;i<nRow+1;i++){
+        printf("%s = %s\n",dbResult[i*2],dbResult[i*2+1]);
+        nLen = strlen(dbResult[i*2+1]);
+        memcpy(pMemFile+offset,dbResult[i*2+1],nLen);
+        offset += nLen;
+    }
+    GetPropStrParse(pParse,pMemFile,pV,nFile);
+    sqlite3_free_table(dbResult);
+    free(pMemFile);
 }

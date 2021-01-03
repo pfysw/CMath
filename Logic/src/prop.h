@@ -36,7 +36,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo *pSeq);
 void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);
-void InitTheoremSet(void);
+void InitTheoremSet(AstParse *pParse);
 void InsertVector(Vector *pV,TokenInfo *pData);
 int SetSameNode(
         AstParse *pParse,

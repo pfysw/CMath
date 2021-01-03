@@ -18,13 +18,16 @@ struct DbInfo
     sqlite3_stmt *stmt;
 };
 
+typedef struct vector Vector;
+
 int select_callback(void * data, int col_count, char ** col_values, char ** col_Name);
 sqlite3 * CreatSqliteConn(char *db_name);
 void SqliteWriteNode(AstParse *pParse,sqlite3 *db,char *zProp);
-void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table);
+void SqliteReadTable(AstParse *pParse,sqlite3 *db,char *table,Vector *pV);
 void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN]);
 void BeginSqliteWrite(AstParse *pParse);
 void EndSqliteWrite(AstParse *pParse);
 void WriteAxiomToDb(AstParse *pParse,char *zProp);
+void GetPropStrParse(AstParse *pParse,char *buf,Vector *pV,int len);
 
 #endif /* DB_H_ */
