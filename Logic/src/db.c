@@ -11,6 +11,7 @@
 //SQLite Backup API
 
 #define DB_DISABLE 0
+#define WRITE_DISABLE 1
 
 /*
 ** This function is used to load the contents of a database file on disk
@@ -223,6 +224,9 @@ void WritePropToDb(AstParse *pParse,char azProp[][PROP_STR_LEN])
     int rc;
     sqlite3_stmt *stmt;
 
+#if WRITE_DISABLE
+    return;
+#endif
     if(pParse->pDb->db==NULL){
         return;
     }

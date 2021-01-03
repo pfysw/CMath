@@ -1222,25 +1222,22 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     }
     EndSqliteWrite(pParse);
 
-   // for(i=0; i<pParse->all_num; i++)
-//    for(i=0; i<theoremset.n; i++)
-//    {
-//        FreeAstTree(pParse,&ppTest[i],ppTemp);
-//    }
-//    theoremset.n = 0;
-//    free(theoremset.data);
-//    pParse->free_cnt++;
     FreeVector(pParse,&theoremset);
     InitTheoremSet(pParse);
     SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet",&theoremset);
     ppTest =  (TokenInfo **)theoremset.data;
     for(i=0; i<theoremset.n; i++)
     {
+        NewMemPool(pParse,1000000);
+        printf("row:%d\n",i+1);
         PrintAst(pParse,ppTest[i]);
-        //FreeAstTree(pParse,&ppTest[i],ppTemp);
+        SetSameNode(pParse,&ppTest[i],ppTemp);
+        pR = PropGenSeq(pParse,ppTest,ppTest[i]);
+        printf("seq %d\n",i+1);
+        PrintAst(pParse,pR);
+        FreeMemPool(pParse);
     }
     FreeVector(pParse,&theoremset);
-    //theoremset.n = 0;
     pParse->ppTemp = NULL;
 
 }
