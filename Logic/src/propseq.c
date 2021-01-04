@@ -419,10 +419,13 @@ TokenInfo * PropGenNegSeq(
     {
         pNeg = NewNegNode(pParse,pRight);
     }
-    if(pLeft->type!=PROP_NEG){
+    if(pLeft->type==PROP_IMPL){
         apCopy[0] = NewNegNode(pParse,pLeft);
         apCopy[1] = NewImplyNode(pParse,pNeg,apCopy[0],"->");
         apCopy[2] = PropGenSeq(pParse,ppTest,apCopy[1]);
+        if(apCopy[2]==NULL){
+            return NULL;
+        }
         if(bNeg){
             apCopy[3] = NewNumNode(pParse,A_NB_B_NA);
         }
@@ -431,11 +434,14 @@ TokenInfo * PropGenNegSeq(
         }
         pR = NewImplyNode(pParse,apCopy[2],apCopy[3],">");
     }
-    else
+    else if(pLeft->pLeft->type!=PROP_SYMB)
     {
         apCopy[0] = pLeft->pLeft;
         apCopy[1] = NewImplyNode(pParse,pNeg,apCopy[0],"->");
         apCopy[2] = PropGenSeq(pParse,ppTest,apCopy[1]);
+        if(apCopy[2]==NULL){
+            return NULL;
+        }
         apCopy[3] = NewNumNode(pParse,AB_NBNA);
         if(!bNeg)//~A->B  (~B->A)->(~A->~~B)->~A->B
         {
@@ -478,8 +484,11 @@ TokenInfo * PropGenSeq(
         }
         else
         {
-            apCopy[0] = NewImplyNode(pParse,pNoNeg,pProp,"+");
+            apCopy[0] = NewImplyNode(pParse,pNoNeg,pProp,"->");
             apCopy[1] = PropGenSeq(pParse,ppTest,apCopy[0]);
+            if(apCopy[1]==NULL){
+                return NULL;
+            }
             apCopy[2] = NewNumNode(pParse,NNA_A);
             apCopy[3] = NewImplyNode(pParse,apCopy[2],apCopy[1],">>");
             apCopy[4] = NewNumNode(pParse,NA_A_A);
@@ -487,7 +496,8 @@ TokenInfo * PropGenSeq(
             return pR;
         }
     }
-
+    assert(pProp->type==PROP_IMPL);
+    assert(pProp->op==OP_IMPL);
     if(pProp->pRight->type!=PROP_NEG)
     {
         ppMid[0]->pNode = pProp->pLeft;
@@ -583,6 +593,9 @@ TokenInfo * PropGenSeq(
             //A->~~B
             apCopy[3] = NewImplyNode(pParse,pProp->pLeft,pNoNeg->pLeft,"->");
             apCopy[0] = PropGenSeq(pParse,ppTest,apCopy[3]);
+            if(apCopy[0]==NULL){
+                return NULL;
+            }
             apCopy[1] = NewNumNode(pParse,A_NNA);
             pR = NewImplyNode(pParse,apCopy[0],apCopy[1],">>");
             //(A+B)>>L = A+(B>L);  下面这种方法无法保证apCopy[0]是A+B的形式
@@ -602,7 +615,9 @@ TokenInfo * PropGenSeq(
             PrintAst(pParse,apCopy[0]);
 #endif
             apCopy[1] = PropGenSeq(pParse,ppTest,apCopy[0]);//A->B
-
+            if(apCopy[1]==NULL){
+                return NULL;
+            }
             apCopy[3] = NewNegNode(pParse,pNoNeg->pRight);
             apCopy[2] = NewImplyNode(pParse,pProp->pLeft,apCopy[3],"->");
 #ifdef GEN_DEBUG
@@ -610,7 +625,9 @@ TokenInfo * PropGenSeq(
             PrintAst(pParse,apCopy[2]);
 #endif
             apCopy[4] = PropGenSeq(pParse,ppTest,apCopy[2]);//A->~C
-
+            if(apCopy[4]==NULL){
+                return NULL;
+            }
             apCopy[5] = NewNumNode(pParse,A_NB_NAB);//B->(~C->~(B->C))
             apCopy[6] = NewImplyNode(pParse,apCopy[5],pParse->apAxiom[0],">");
             apCopy[7] = NewImplyNode(pParse,apCopy[6],pParse->apAxiom[1],">");
@@ -628,6 +645,6 @@ TokenInfo * PropGenSeq(
             PrintAst(pParse,pProp);
         }
     }
-    assert(pR!=NULL);
+    //assert(pR!=NULL);
     return pR;
 }

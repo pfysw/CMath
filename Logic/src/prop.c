@@ -141,7 +141,7 @@ int GetDiffNode(
         n = 0;
     }
     cnt++;
-    if( cnt>10 )
+    if( cnt>11 )
     {
         pParse->bDiscard = 1;
     }
@@ -547,6 +547,30 @@ void ClearSubstFlag(AstParse *pParse,TokenInfo *pAst)
         ClearSubstFlag(pParse,pAst->pLeft);
         ClearSubstFlag(pParse,pAst->pRight);
     }
+}
+
+int isSubstFlag(AstParse *pParse,TokenInfo *pAst)
+{
+    assert(pAst!=NULL);
+    int rc = 0;
+
+    if( pAst->type==PROP_SYMB )
+    {
+        rc = pAst->bSubst;
+    }
+    else if( pAst->type==PROP_NEG )
+    {
+        rc = isSubstFlag(pParse,pAst->pLeft);
+    }
+    else
+    {
+        assert(pAst->type==PROP_IMPL);
+        rc = isSubstFlag(pParse,pAst->pLeft);
+        if(!rc){
+            rc = isSubstFlag(pParse,pAst->pRight);
+        }
+    }
+    return rc;
 }
 
 #define DEBUG 1
@@ -956,6 +980,65 @@ end_insert:
     return apCopy[1];
 }
 
+TokenInfo *  SubstMpLeft(
+        AstParse *pParse,
+        TokenInfo *pA,//定理
+        TokenInfo *pB)//推论
+{
+    int rc = 0;
+    int k;
+    TokenInfo *apCopy[5] = {0};
+    TokenInfo **ppTemp = pParse->ppTemp;
+    int mxDiff = 7;
+    int mxAll = 27;
+    SetSameNode(pParse,&pA,ppTemp);
+    SetSameNode(pParse,&pB,ppTemp);
+    assert(pA!=pB);
+    if(pB->type==PROP_IMPL){
+        rc = SubstProp(pParse,pB->pRight,pA);
+    }
+
+    if( rc )
+    {
+        int n,m;
+
+        PrintSubstAst(pParse,pA);
+        PrintSubstAst(pParse,pB);
+        if(isSubstFlag(pParse,pA)){
+            printf("has subst\n");
+            goto end_insert;
+        }
+        m = GetAllNode(pParse,&pB->pLeft,ppTemp);
+        if( m>mxAll ) {
+            printf("LeftNode num %d\n",m);
+        }
+        n = GetDiffNode(pParse,&pB->pLeft,ppTemp,1);
+        if( n>mxDiff || pParse->bDiscard )
+        {
+            printf("GetDiffNode %d bDiscard %d\n",n,pParse->bDiscard);
+            pParse->bDiscard = 0;
+            assert(0);
+            goto end_insert;
+        }
+        for(k=0; k<n; k++)
+        {
+            ppTemp[k]->copy = 'A'+k;
+        }
+        apCopy[1] = CopyAstTree(pParse,pB->pLeft,1);
+        SetSameNode(pParse,&apCopy[1],ppTemp);
+        printf("gen left\n");
+    }
+    else
+    {
+        log_a("MpSubstLeft fail");
+    }
+
+end_insert:
+    ClearSubstFlag(pParse,pA);
+    ClearSubstFlag(pParse,pB);
+    return apCopy[1];
+}
+
 void SetRefNum(int i)
 {
     refset.aSet[refset.nRef++] = i;
@@ -1160,6 +1243,8 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     int i;
     TokenInfo *ppTemp[100];//存在递归时的共享变量
     TokenInfo *pR;//
+    TokenInfo *pDemo;
+    TokenInfo *pLeft;
 
     pParse->ppTemp = ppTemp;
     for(i=0; i<3; i++)
@@ -1222,6 +1307,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     }
     EndSqliteWrite(pParse);
 
+#if 1
     FreeVector(pParse,&theoremset);
     InitTheoremSet(pParse);
     SqliteReadTable(pParse,pParse->pDb->db,"TheoremSet",&theoremset);
@@ -1237,6 +1323,25 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
         PrintAst(pParse,pR);
         FreeMemPool(pParse);
     }
+    pDemo = CopyAstTree(pParse,ppTest[56],0);
+    PrintAst(pParse,pDemo);
+    for(i=0; i<theoremset.n; i++)
+    {
+        NewMemPool(pParse,1000000);
+        printf("mp left:%d\n",i+1);
+        pR = SubstMpLeft(pParse,pDemo,ppTest[i]);
+        if(pR!=NULL){
+            PrintAst(pParse,pR);
+            pLeft = PropGenSeq(pParse,NULL,pR);
+            if(pLeft!=NULL){
+                printf("get left\n");
+            }
+            FreeAstTree(pParse,&pR,ppTemp);
+        }
+        FreeMemPool(pParse);
+    }
+    FreeAstTree(pParse,&pDemo,ppTemp);
+#endif
     FreeVector(pParse,&theoremset);
     pParse->ppTemp = NULL;
 
