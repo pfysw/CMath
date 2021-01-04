@@ -1329,6 +1329,7 @@ void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest)
     {
         NewMemPool(pParse,1000000);
         printf("mp left:%d\n",i+1);
+        PrintAst(pParse,ppTest[i]);
         pR = SubstMpLeft(pParse,pDemo,ppTest[i]);
         if(pR!=NULL){
             PrintAst(pParse,pR);

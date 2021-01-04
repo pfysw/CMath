@@ -368,12 +368,18 @@ void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
         if(ppMid[i]->pNode==ppMid[j]->pNode->pRight->pLeft){
             if(ppMid[j]->pNode->pLeft->type==PROP_NEG)
             {
+                if(ppMid[j]->pNode->pLeft->pLeft==ppMid[i]->pNode){
+                    return;// ~B->~B  B
+                }
                 pNoNeg = ppMid[j]->pNode->pLeft->pLeft;
                 apCopy[0] = NewImplyNode(pParse,ppMid[j]->pSeq,pParse->apAxiom[2],">");
                 ppMid[*idx]->pSeq = NewImplyNode(pParse,ppMid[i]->pSeq,apCopy[0],">");
             }
             else
             {
+                if(ppMid[j]->pNode->pLeft==ppMid[i]->pNode->pLeft){
+                    return;// j:B->~B  i:~B
+                }
                 pNoNeg = NewNegNode(pParse,ppMid[j]->pNode->pLeft);
                 apCopy[1] = NewNumNode(pParse,NNA_A);
                 apCopy[0] = NewImplyNode(pParse,apCopy[1],ppMid[j]->pSeq,">>");
@@ -386,7 +392,8 @@ void FindNewMpSeq(AstParse *pParse,AddSeq **ppMid,int i,int j,int *idx)
     }
     else if(ppMid[i]->pNode->type==PROP_NEG)
     {
-        if(ppMid[i]->pNode->pLeft==ppMid[j]->pNode->pRight)
+        if(ppMid[i]->pNode->pLeft==ppMid[j]->pNode->pRight &&
+                ppMid[j]->pNode->pRight!=ppMid[j]->pNode->pLeft)//A->A ~A
         {
             apCopy[1] = NewNumNode(pParse,AB_NBNA);
             apCopy[0] = NewImplyNode(pParse,ppMid[j]->pSeq,apCopy[1],">");
