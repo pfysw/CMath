@@ -377,7 +377,7 @@ void FreeMemPool(AstParse *pParse)
 {
     memsys5Shutdown(&pParse->pMem);
     pParse->free_cnt++;
-    log_a("pool len %d",pParse->test);
+    //log_a("pool len %d",pParse->test);
     pParse->test = 0;
 }
 

@@ -116,21 +116,21 @@ int main(int argc, char** argv)
    yyscan_t scanner;
    FILE *fd = NULL;
    AstParse *pParse;
+   Vector *pSet;
 
    setbuf(stdout, NULL);
 
    yylex_init(&scanner);
    fd = BindScanFd(scanner,"in.sh");
    pParse = CreatAstParse();
-   InitTheoremSet(pParse);
-   Token2AstTree(pParse,scanner,&theoremset);
+   pSet = InitTheoremSet(pParse);
+   Token2AstTree(pParse,scanner,pSet);
    yylex_destroy(scanner);
    fclose(fd);
 
    //GenBasicProp(pParse);
-  // SubstPropTest(pParse,ppTest);
   // SubstSingleTest(pParse,theoremset.data);
-   SubstMpTest(pParse,theoremset.data);
+   SubstMpTest(pParse,pSet);
    for(int i=0;i<3;i++){
        FreeAstNode(pParse,pParse->apAxiom[i]);
    }

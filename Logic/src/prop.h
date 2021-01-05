@@ -18,15 +18,20 @@ typedef struct vector
     int size;
 }Vector;
 
+typedef struct DebugFlag
+{
+    u8 mpLeftDebug;
+    u8 deduceDebug;
+}DebugFlag;
+
+extern DebugFlag gDebug;
+
 void GenBasicProp(AstParse *pParse);
 int  SubstProp(
         AstParse *pParse,
         TokenInfo *pA,
         TokenInfo *pB);
-void  SubstMpTest(AstParse *pParse,TokenInfo **ppTest);
-void  SubstPropTest(
-        AstParse *pParse,
-        TokenInfo **ppTest);
+void  SubstMpTest(AstParse *pParse,Vector *pSet);
 TokenInfo *  PropMpSubst(
         AstParse *pParse,
         TokenInfo *pA,//条件
@@ -36,7 +41,7 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         TokenInfo *pSeq);
 void FreePropSeq(AstParse *pParse,TokenInfo *pSeq,TokenInfo **ppTemp);
 void  SubstSingleTest(AstParse *pParse,TokenInfo **ppTest);
-void InitTheoremSet(AstParse *pParse);
+Vector *InitTheoremSet(AstParse *pParse);
 void InsertVector(Vector *pV,TokenInfo *pData);
 int SetSameNode(
         AstParse *pParse,

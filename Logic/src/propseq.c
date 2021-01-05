@@ -75,8 +75,10 @@ TokenInfo * PropMpSeq(AstParse *pParse,
         }
         else{
             pSeq->pDeduce = PropAdd(pParse,ppTest,pSeq);
-            log_a("add pDeduce %d",cnt);
-            PrintAst(pParse,pSeq->pDeduce);
+            if(gDebug.deduceDebug){
+                log_a("add pDeduce %d",cnt);
+                PrintAst(pParse,pSeq->pDeduce);
+            }
             pSeq->pTheorem = PropMpSeq(pParse,ppTest,pSeq->pDeduce);
             pTemp = CopyAstTree(pParse,pSeq->pTheorem,0);
             FreePropSeq(pParse,pSeq->pDeduce,ppTemp);
