@@ -505,6 +505,9 @@ TokenInfo * PropGenSeq(
             return pR;
         }
     }
+    if(pProp->type==PROP_SYMB){
+        return pR;
+    }
     assert(pProp->type==PROP_IMPL);
     assert(pProp->op==OP_IMPL);
     if(pProp->pRight->type!=PROP_NEG)

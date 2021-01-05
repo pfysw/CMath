@@ -815,8 +815,8 @@ void  SubstMpTest(AstParse *pParse,Vector *pSet)
         PrintAst(pParse,pR);
         FreeMemPool(pParse);
     }
-    pDemo = CopyAstTree(pParse,ppDbSet[56],0);
-    //pDemo = CopyAstTree(pParse,ppDbSet[31],0);
+   // pDemo = CopyAstTree(pParse,ppDbSet[56],0);
+    pDemo = CopyAstTree(pParse,ppDbSet[31],0);
     PrintAst(pParse,pDemo);
     for(i=0; i<pVec->n; i++)
     {
